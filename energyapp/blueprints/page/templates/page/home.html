@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  {% extends 'layouts/base.html' %}
+
+  {% block title %}PowerPlan{% endblock %}
+  {% block meta_description %}Software platform to reduce soft costs for solar energy businesses{% endblock %}
+
+  {% block body %}
+
+  <!-- Page Content -->
+  <div class="container">
+
+    <!-- Jumbotron -->
+    <div class="row my-5">
+      <div class="col-lg-12 text-center">
+        <div class="jumbotron">
+          <h1>Software solution to automate pre-sales consultancy for solar energy businesses</h1>
+        </div>
+      </div>
+      <!-- Heading row -->
+        <div class="col-lg-12 text-center">
+          <h1 >Digital Sales of Energy Technology</h1>
+          <h5 >Reduce time and costs for pre-sales consultation processes</h5>
+        </div>
+    </div>
+    <!-- /.row -->
+
+    <!-- Content Row -->
+    <div class="row mb-5">
+      <div class="col-3 p-4 text-justify">
+        <h5 class="text-center">Load profiles</h5>
+        <img src="{{ url_for('static',filename= 'images/statistical-chart.png')}}" 
+             class="rounded mx-auto d-block" alt="Load profile" 
+             width= "50" height= "50">
+        <p>Create energy consumption profiles based on statistical data and stochastic processes</p>
+      </div>
+
+      <div class="col-3 p-4 text-justify">
+        <h5 class="text-center">Optimum energy system</h5>
+        <img src="{{ url_for('static',filename= 'images/algorithm.png')}}" 
+             class="rounded mx-auto d-block" alt="Algorithm" 
+             width= "50" height= "50">
+        <p>Our algorithms identify the optimum size of an energy system and maximize self-consumption</p>
+      </div>
+
+      <div class="col-3 p-4 text-justify">
+        <h5 class="text-center">Create individual offers</h5>
+        <img src="{{ url_for('static',filename= 'images/offer.png')}}" 
+             class="rounded mx-auto d-block" alt="Offer" 
+             width= "50" height= "50">
+        <p>Create "push" offers with individual system solutions</p>
+      </div>
+
+      <div class="col-3 p-4 text-justify">
+        <h5 class="text-center">Full transparency</h5>
+        <img src="{{ url_for('static',filename= 'images/transparency.png')}}" 
+             class="rounded mx-auto d-block" alt="Transparency" 
+             width= "50" height= "50">
+        <p>Allow your customers to compare different energy systems regarding return of investment, 
+          degree of autarky and reduced emissions</p>
+      </div>
+    </div>
+    <!-- /.row -->
+
+    <div class="row">
+      <div class="col-md-4 mb-5">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="card-title">White Paper</h2>
+            <p class="card-text">If you want to know more, please download our White Paper</p>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn btn-primary btn-sm">Download</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /.container -->
+
+  <!-- Footer -->
+  <footer class="pt-4 my-md-5 pt-md-5 border-top">
+    <div class="row justify-content-start">
+      <div class="col-4">
+        <h5>Get in touch</h5>
+        <ul>
+          <li>christianorner8@gmail.com</li>
+          <li>Tel: +4917664908433</li>
+        </ul>
+        <a href="https://www.linkedin.com/in/christian-orner-7aa17880/">
+          <img src="https://prismic-io.s3.amazonaws.com/plotly%2Fb3ffa9a8-1af6-4bb4-8e6a-8161d9dba450_icon_linkedin.svg" alt="linkedin">
+        </a>
+      </div>
+      <div class="col-3">
+        <h5>Sign up for our newsletter</h5>
+        <form method="POST">
+          <input type="text" placeholder="Your email address" name="emailaddress" id="emailaddress" required>
+          <input type="submit" class="btn btn-primary btn-sm"></input>
+        </form> 
+      </div>
+    </div>
+    <!-- /.container -->
+  </footer>
+
+  {% endblock %}
+

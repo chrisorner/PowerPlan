@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  postgres:
+    image: 'postgres:9.5'
+    env_file:
+      - '.env'
+    volumes:
+      - 'postgres:/var/lib/postgresql/data'
+    ports:
+      - '5432:5432'
+
+  website:
+    build: .
+    command: >
+      gunicorn -b 0.0.0.0:8000
+        --access-logfile -
+        --reload
+        "energyapp:create_app()"
+    environment:
+      PYTHONUNBUFFERED: 'true'
+    env_file:
+      - '.env'
+    volumes:
+      - '.:/energyapp'
+    ports:
+      - '8000:8000'
+
+volumes:
+  postgres:

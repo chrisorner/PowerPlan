@@ -1,0 +1,1 @@
+from energyapp.blueprints.page.views import page
