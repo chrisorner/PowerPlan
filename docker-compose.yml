@@ -10,6 +10,15 @@ services:
     ports:
       - '5432:5432'
 
+  redis:
+    image: 'redis:6.0-alpine'
+    command: redis-server --requirepass devpassword
+    volumes:
+      # stores data on workstation, so when docker stops and restarts the data is restored
+      - 'redis:/var/lib/redis/data'
+    ports:
+      - '6379:6379'
+
   website:
     build: .
     command: >
@@ -26,5 +35,14 @@ services:
     ports:
       - '8000:8000'
 
+  celery:
+    build: .
+    command: celery worker -l info -A energyapp.blueprints.contact.tasks
+    env_file:
+      - '.env'
+    volumes:
+      - '.:/energyapp'
+
 volumes:
   postgres:
+  redis:

@@ -1,12 +1,47 @@
 import dash
 from flask import Flask
 from flask.helpers import get_root_path
-from energyapp.extensions import debug_toolbar, db
+from celery import Celery
+from energyapp.extensions import debug_toolbar, db, mail, csrf
 from energyapp.blueprints.page import page
+from energyapp.blueprints.contact import contact
 import os
 
 
-def create_app():
+# define celery tasks
+CELERY_TASK_LIST = [
+    'energyapp.blueprints.contact.tasks'
+]
+
+
+def create_celery_app(app=None):
+    """
+    Create a new Celery object and tie together the Celery config to the app's
+    config. Wrap all tasks in the context of the application.
+
+    :param app: Flask app
+    :return: Celery app
+    """
+    app = app or create_app()
+
+    celery = Celery(app.import_name, broker=app.config['CELERY_BROKER_URL'],
+                    include=CELERY_TASK_LIST)
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+
+    # Required to access database in a task. Copied from flask docs
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery
+
+
+def create_app(settings_override=None):
     """
     Create a Flask application using the app factory pattern.
 
@@ -22,6 +57,7 @@ def create_app():
     register_dashapp(server, 'Dashapp 1', 'dashboard', layout1, register_callbacks1)
 
     server.register_blueprint(page)
+    server.register_blueprint(contact)
     extensions(server)
 
 
@@ -58,5 +94,7 @@ def extensions(app):
     """
     #debug_toolbar.init_app(app)
     db.init_app(app)
+    mail.init_app(app)
+    csrf.init_app(app)
 
     return None
