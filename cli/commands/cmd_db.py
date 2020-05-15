@@ -4,7 +4,8 @@ from sqlalchemy_utils import database_exists, create_database
 
 from energyapp import create_app
 from energyapp.extensions import db
-from energyapp.models import User
+from energyapp.blueprints.page.models import Newsletter
+from energyapp.blueprints.user.models import User
 
 # Create an app context for the database connection.
 app = create_app()
@@ -42,6 +43,21 @@ def init(with_testdb):
 @click.command()
 def seed():
     """
+    Seed the newsletter database with an initial email address.
+
+    :return: Newsletter instance
+    """
+    if Newsletter.find_by_identity(app.config['SEED_NEWSLETTER_EMAIL']) is not None:
+        return None
+
+    params = {
+        'email': app.config['SEED_NEWSLETTER_EMAIL'],
+    }
+
+    db.session.add(Newsletter(**params))
+    db.session.commit()
+
+    """
     Seed the database with an initial user.
 
     :return: User instance
@@ -50,11 +66,12 @@ def seed():
         return None
 
     params = {
+        'role': 'admin',
         'email': app.config['SEED_ADMIN_EMAIL'],
+        'password': app.config['SEED_ADMIN_PASSWORD']
     }
 
-    db.session.add(User(**params))
-    db.session.commit()
+    return User(**params).save()
 
 
 @click.command()

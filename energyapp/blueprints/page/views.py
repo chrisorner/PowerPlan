@@ -1,5 +1,5 @@
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
-from energyapp.models import User
+from energyapp.blueprints.page.models import Newsletter
 from energyapp.extensions import db
 
 
@@ -9,9 +9,9 @@ page = Blueprint('page', __name__, template_folder='templates')
 def home():
     if request.method == 'POST':
         emailaddress = request.form['emailaddress']
-        email= User(email=emailaddress)
-        user = User.query.filter_by(email=emailaddress).first()
-        if not user:
+        email= Newsletter(email=emailaddress)
+        signup = Newsletter.query.filter_by(email=emailaddress).first()
+        if not signup:
             db.session.add(email)
             db.session.commit()
             flash('Registration has been successful', 'success')

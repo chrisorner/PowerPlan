@@ -1,11 +1,18 @@
 import dash
+import os
 from flask import Flask
 from flask.helpers import get_root_path
 from celery import Celery
-from energyapp.extensions import debug_toolbar, db, mail, csrf
+from itsdangerous import URLSafeTimedSerializer
+from werkzeug.debug import DebuggedApplication
+
+
+from energyapp.extensions import debug_toolbar, db, mail, csrf,login_manager
+from energyapp.blueprints.admin import admin
 from energyapp.blueprints.page import page
 from energyapp.blueprints.contact import contact
-import os
+from energyapp.blueprints.user import user
+from energyapp.blueprints.user.models import User
 
 
 # define celery tasks
@@ -52,14 +59,24 @@ def create_app(settings_override=None):
     server.config.from_object('config.settings')
     server.config.from_pyfile('settings.py', silent=True)
 
+    if settings_override:
+        server.config.update(settings_override)
+
+    server.logger.setLevel(server.config['LOG_LEVEL'])
+
     from energyapp.dashapp1.layout import layout as layout1
     from energyapp.dashapp1.callbacks import register_callbacks as register_callbacks1
     register_dashapp(server, 'Dashapp 1', 'dashboard', layout1, register_callbacks1)
 
     server.register_blueprint(page)
     server.register_blueprint(contact)
+    server.register_blueprint(user)
+    server.register_blueprint(admin)
+    authentication(server, User)
     extensions(server)
 
+    if server.debug:
+        server.wsgi_app = DebuggedApplication(server.wsgi_app, evalex=True)
 
     return server
 
@@ -96,5 +113,22 @@ def extensions(app):
     db.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
+    login_manager.init_app(app)
 
     return None
+
+
+def authentication(app, user_model):
+    """
+    Initialize the Flask-Login extension (mutates the app passed in).
+
+    :param app: Flask application instance
+    :param user_model: Model that contains the authentication information
+    :type user_model: SQLAlchemy model
+    :return: None
+    """
+    login_manager.login_view = 'user.login'
+
+    @login_manager.user_loader
+    def load_user(uid):
+        return user_model.query.get(uid)

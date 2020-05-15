@@ -16,7 +16,7 @@
       href="{{ url_for('static', filename='styles/vendor/bootstrap/css/bootstrap.min.css') }}">
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='styles/css/small-business.css') }}">
+      href="{{ url_for('static', filename='styles/main.css') }}">
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles/vendor/font-awesome.min.css') }}">
@@ -25,10 +25,9 @@
             crossorigin="anonymous"></script>
   </head> 
   <body>
-    {{ flash.render() }}
 
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
       <div class="container">
         <a class="navbar-brand" href="#">PowerPlan</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,29 +35,40 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
-            <li class="nav-item active">
+            <li class="nav-item">
               <a class="nav-link" href="{{ url_for('page.home') }}">Home
-                <span class="sr-only">(current)</span>
               </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">About</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Services</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('contact.index') }}">Contact</a>
             </li>
+          </ul>
+          <ul class="navbar-nav ml-auto">
+            {% if current_user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('user.settings') }}">Settings</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('user.logout') }}">Log out</a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('user.login') }}">Log in</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('user.signup') }}">Sign up</a>
+            </li>
+          {% endif %}
           </ul>
         </div>
       </div>
     </nav>
 
     <main class="container">
+      {{ flash.render() }}
 
       <div class="md-margin-top">{% block heading %}{% endblock %}</div>
-      {% block body %}{% endblock %}
+      {% block body %}  {% endblock %}
     </main>
 
     <script

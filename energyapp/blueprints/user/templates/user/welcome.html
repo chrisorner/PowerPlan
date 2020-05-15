@@ -1,0 +1,37 @@
+{% extends 'layouts/base.html' %}
+{% import 'macros/form.html' as f with context %}
+
+{% block title %}Thanks for signing up{% endblock %}
+
+{% block body %}
+  <div class="row">
+    <div class="col-md-5">
+      <h2 class="sm-margin-bottom">Ready to upgrade?</h2>
+
+      <p class="margin-bottom">
+        Hi. You're only about a minute away from being a paid member which
+        provides you many amazing things.
+      </p>
+
+      <p class="small">
+        Coming soon...
+      </p>
+    </div>
+    <div class="col-md-5 col-md-push-1 col-md-offset-1 well">
+        <div class="row">
+          <div class="col-md-6">
+            <button type="submit" class="btn btn-primary btn-block">
+              Save
+            </button>
+          </div>
+          <div class="col-md-6">
+            <div class="visible-xs visible-sm sm-margin-top"></div>
+            <a href="{{ url_for('user.settings') }}"
+               class="btn btn-default btn-block">
+              Do it later
+            </a>
+          </div>
+        </div>
+    </div>
+  </div>
+{% endblock %}

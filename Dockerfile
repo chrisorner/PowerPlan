@@ -15,4 +15,4 @@ RUN pip install -r requirements.txt
 COPY . .
 RUN pip install -e .
 
-CMD gunicorn -b 0.0.0.0:8000 --access-logfile - "energyapp:create_app()"
+CMD gunicorn -c "python:config.gunicorn" "energyapp:create_app()"

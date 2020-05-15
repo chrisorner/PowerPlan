@@ -38,12 +38,17 @@ psycopg2==2.8.3
 # Forms.
 Flask-WTF==0.14.3
 WTForms-Components==0.10.4
+WTForms-Alchemy== 0.16.9
 
 # This line is different than what's on video but we do cover this update in
 # more detail in the October 2019 update video.
 redis==3.5.1
 celery==4.4.2
 
+#utils
+fake-factory==0.7.4
+
 # Extensions.
 flask-debugtoolbar==0.10.0
 Flask-Mail==0.9.1
+Flask-Login==0.5.0
