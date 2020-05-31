@@ -2,12 +2,13 @@ import dash
 import os
 from flask import Flask
 from flask.helpers import get_root_path
+from flask_login import login_required
 from celery import Celery
 from itsdangerous import URLSafeTimedSerializer
 from werkzeug.debug import DebuggedApplication
 
 
-from energyapp.extensions import debug_toolbar, db, mail, csrf,login_manager
+from energyapp.extensions import debug_toolbar, db, mail,login_manager
 from energyapp.blueprints.admin import admin
 from energyapp.blueprints.page import page
 from energyapp.blueprints.contact import contact
@@ -57,16 +58,20 @@ def create_app(settings_override=None):
     server = Flask(__name__, instance_relative_config=True)
 
     server.config.from_object('config.settings')
-    server.config.from_pyfile('settings.py', silent=True)
+    server.config.from_pyfile('settings.py', silent=True),
 
-    if settings_override:
-        server.config.update(settings_override)
+#    if settings_override:
+ #       server.config.update(settings_override)
 
     server.logger.setLevel(server.config['LOG_LEVEL'])
 
-    from energyapp.dashapp1.layout import layout as layout1
+    from energyapp.dashapp1.load_profile_generator import layout as layout1
     from energyapp.dashapp1.callbacks import register_callbacks as register_callbacks1
-    register_dashapp(server, 'Dashapp 1', 'dashboard', layout1, register_callbacks1)
+    register_dashapp(server, 'Dashapp 1', 'profile', layout1, register_callbacks1)
+
+    from energyapp.dashapp2.layout import layout as layout2
+    from energyapp.dashapp2.callbacks import register_callbacks as register_callbacks2
+    register_dashapp(server, 'Dashapp 2', 'simulation', layout2, register_callbacks2)
 
     server.register_blueprint(page)
     server.register_blueprint(contact)
@@ -91,7 +96,6 @@ def register_dashapp(app, title, base_pathname, layout, register_callbacks_fun):
                            server=app,
                            url_base_pathname=f'/{base_pathname}/',
                            assets_folder=get_root_path(__name__) + f'/{base_pathname}/assets/',
-                           serve_locally = False,
                            external_stylesheets=external_stylesheets,
                            meta_tags=[meta_viewport])
 
@@ -100,6 +104,13 @@ def register_dashapp(app, title, base_pathname, layout, register_callbacks_fun):
         my_dashapp.title = title
         my_dashapp.layout = layout
         register_callbacks_fun(my_dashapp)
+    _protect_dashviews(my_dashapp)
+
+
+def _protect_dashviews(dashapp):
+    for view_func in dashapp.server.view_functions:
+        if view_func.startswith(dashapp.config.url_base_pathname):
+            dashapp.server.view_functions[view_func] = login_required(dashapp.server.view_functions[view_func])
 
 
 def extensions(app):
@@ -112,7 +123,6 @@ def extensions(app):
     #debug_toolbar.init_app(app)
     db.init_app(app)
     mail.init_app(app)
-    csrf.init_app(app)
     login_manager.init_app(app)
 
     return None

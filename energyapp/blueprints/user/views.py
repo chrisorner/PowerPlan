@@ -46,7 +46,7 @@ def login():
                 if next_url:
                     return redirect(safe_next_url(next_url))
 
-                return redirect(url_for('user.settings'))
+                return redirect(url_for('user.startapp'))
             else:
                 flash('This account has been disabled.', 'error')
         else:
@@ -86,6 +86,12 @@ def signup():
 @login_required
 def welcome():
     return render_template('user/welcome.html')
+
+
+@user.route('/startapp', methods=['GET', 'POST'])
+@login_required
+def startapp():
+    return render_template('user/startapp.html')
 
 
 @user.route('/settings', methods=['GET', 'POST'])

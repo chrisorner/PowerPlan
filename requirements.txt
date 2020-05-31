@@ -52,3 +52,12 @@ fake-factory==0.7.4
 flask-debugtoolbar==0.10.0
 Flask-Mail==0.9.1
 Flask-Login==0.5.0
+
+# app
+astral==2.1
+pandas==1.0.3
+numpy==1.18.4
+pvlib==0.7.2
+plotly==4.7.1
+geopy==1.22.0
+tables==3.6.1

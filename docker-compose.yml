@@ -22,7 +22,7 @@ services:
   website:
     build: .
     command: >
-      gunicorn -c "python:config.gunicorn" --reload "energyapp:create_app()"
+      gunicorn --preload -c "python:config.gunicorn" --reload "energyapp:create_app()"
     environment:
       PYTHONUNBUFFERED: 'true'
     env_file:
