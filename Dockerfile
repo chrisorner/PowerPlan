@@ -1,5 +1,5 @@
 FROM python:3.8.2-slim-buster
-MAINTAINER Nick Janetakis <nick.janetakis@gmail.com>
+MAINTAINER Christian Orner <christianorner8@gmail.com>
 
 RUN apt-get update && apt-get install -qq -y \
   build-essential libpq-dev --no-install-recommends

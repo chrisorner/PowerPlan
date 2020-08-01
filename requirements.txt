@@ -61,3 +61,7 @@ pvlib==0.7.2
 plotly==4.7.1
 geopy==1.22.0
 tables==3.6.1
+psutil==5.7.0
+html5lib==1.0b8
+xhtml2pdf==0.2.4
+chart-studio==1.1.0

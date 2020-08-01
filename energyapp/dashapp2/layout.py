@@ -48,6 +48,9 @@ layout = html.Div([
 
             ])
             ]),
+        html.Div([
+            html.Div([html.Button('Create Report', id='button_report', className='btn btn-primary')], className='col-3')
+        ], className='row my-2'),
 
         ], className='col-6'),
         html.Div([
@@ -144,7 +147,8 @@ layout = html.Div([
 
         html.P(id='placeholder_database_entry', style={'display': 'none'}),
         html.Div(id= 'placeholder_delete_db',style={'display': 'none'}),
-        html.Div(id='placeholder_confirm', style={'display': 'none'}),
+        html.Div(id='placeholder_report', style={'display': 'none'}),
+        html.Div(id='placeholder_report_url', style={'display': 'none'}),
         html.Div(id='store_p_sol', style={'display': 'none'}),
         html.Div(id='store_p_cons', style={'display': 'none'}),
         html.Div(id='store_rad', style={'display': 'none'}),

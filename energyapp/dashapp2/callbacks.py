@@ -5,25 +5,41 @@ import json
 from dash.dependencies import Input, Output, State
 from energyapp.dashapp2.functions.calculations import Solar2, Battery, Costs
 from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
+from energyapp.dashapp2.functions.exportReport import generate_report, convert_html_to_pdf, permanently_delete_files
 from pvlib import pvsystem
 import plotly.graph_objs as go
+import chart_studio.plotly as py
+from chart_studio.tools import set_credentials_file
+
+username = 'christianorner' # Replace with YOUR USERNAME
+api_key = 'rDZwRMFq2BJ5ixdMlf3I' # Replace with YOUR API KEY
+set_credentials_file(username = username, api_key= api_key)
+
 
 # load energy constumption data
 consumption = read_alpg_results('energyapp/dashapp1/alpg/output/results/Electricity_Profile.csv')
 
 
-def register_callbacks(dashapp):      
-    @dashapp.callback(Output('placeholder_confirm', 'children'),
-                [Input('confirm', 'submit_n_clicks')])
-    def display_confirm(submit_n_clicks):
-        return ''
-
+def register_callbacks(dashapp):
     @dashapp.callback(
         Output('store_location', 'children'),
         [Input('button_loc', 'n_clicks')],
         [State('location', 'value')])
     def change_loc(n_clicks, location):
         return location
+
+    @dashapp.callback(
+        Output('placeholder_report', 'children'),
+        [Input('button_report', 'n_clicks')],
+        [State('placeholder_report_url','children')])
+        
+    def create_report(n_clicks, plot_url):
+       
+        graphs = [plot_url]
+        static_report,_ = generate_report(graphs)
+        convert_html_to_pdf(static_report, 'report.pdf')
+        return plot_url
+
 
 
     @dashapp.callback(
@@ -147,18 +163,19 @@ def register_callbacks(dashapp):
 
 
     @dashapp.callback(
-        Output('graph-with-slider', 'figure'),
+        [Output('graph-with-slider', 'figure'),
+        Output('placeholder_report_url', 'children')],
         [Input('select_Graph', 'value'),
         Input('years', 'value'),
-        Input('store_rad', 'children'),
-        Input('store_e_batt', 'children'),
-        Input('store_e_grid', 'children'),
-        Input('store_e_sell', 'children'),
-        Input('store_grid_costs', 'children'),
-        Input('store_solar_costs', 'children')],
+        Input('store_rad', 'children')],
+        [State('store_e_batt', 'children'),
+        State('store_e_grid', 'children'),
+        State('store_e_sell', 'children'),
+        State('store_grid_costs', 'children'),
+        State('store_solar_costs', 'children')],
     )
 
-    def update_graph_costs(sel_plot, years_input, rad_val_json, e_batt_json, e_grid_json, e_sell_json, grid_costs_json, solar_costs_json):
+    def update_graph_costs(sel_plot, years_input, rad_val_json, e_batt_json, e_grid_json, e_sell_json, grid_costs_json,  solar_costs_json):
 
         traces= []
 
@@ -210,6 +227,16 @@ def register_callbacks(dashapp):
                 'line': {'width': 0.5, 'color': 'blue'}
             }
         ))
+        permanently_delete_files('christianorner',filetype_to_delete='plot')
+        permanently_delete_files('christianorner', filetype_to_delete='grid')
+        data= list(traces[0:2])
+        layout= go.Layout(
+            xaxis={'title': 'Years'},
+            yaxis={'title': 'Costs [EUR]'},
+            legend=dict(x=-.1, y=1.2),
+            plot_bgcolor= 'white')
+        fig = go.Figure(data,layout)
+        plot_url = py.plot(fig, auto_open=False)
 
         traces.append(go.Scatter(
                 x=rad_time[0:119],
@@ -256,6 +283,9 @@ def register_callbacks(dashapp):
                 },
             ))
 
+        
+
+
     #    if sel_plot == 'cost_graph':
         return {
             'data': list(traces[0:2]),
@@ -265,7 +295,8 @@ def register_callbacks(dashapp):
                 yaxis={'title': 'Costs [EUR]'},
                 legend=dict(x=-.1, y=1.2))
 
-        }
+        }, plot_url
+
     #    elif sel_plot == 'power_graph':
     #    return {
     #        'data': list(traces[2:5]),
