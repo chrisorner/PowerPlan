@@ -41,6 +41,11 @@ layout = html.Div([
                     dcc.Graph(id='graph-with-slider', config={'displayModeBar': False})
                     ])]),
 
+            dcc.Tab(label='Battery Sizes', value='tab-batteries', children=[
+                html.Div([
+                    dcc.Graph(id='graph-batteries', config={'displayModeBar': False})
+                    ])]),
+
             dcc.Tab(label='Electrical Power', value='tab-power', children=[
                 html.Div([
                     dcc.Graph(id='graph_solpower', config={'displayModeBar': False})
@@ -157,7 +162,8 @@ layout = html.Div([
         html.Div(id='store_e_sell', style={'display': 'none'}),
         html.Div(id='store_grid_costs', style={'display': 'none'}),
         html.Div(id='store_solar_costs', style={'display': 'none'}),
-        html.Div(id='store_location', style={'display': 'none'})
+        html.Div(id='store_location', style={'display': 'none'}),
+        html.Div(id='store_cost_with_batteries', style={'display': 'none'})
     ], className='row my-4 align-items-end'),
 
 

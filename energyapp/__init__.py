@@ -55,10 +55,9 @@ def create_app(settings_override=None):
 
     :return: Flask app
     """
-    server = Flask(__name__, instance_relative_config=True)
+    server = Flask(__name__)
 
     server.config.from_object('config.settings')
-    server.config.from_pyfile('settings.py', silent=True),
 
 #    if settings_override:
  #       server.config.update(settings_override)

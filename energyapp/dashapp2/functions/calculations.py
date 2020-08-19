@@ -119,8 +119,8 @@ class Solar2:
 
 class Battery:
 
-    def __init__(self, rad):
-        t_ges = len(rad) + 1
+    def __init__(self):
+        t_ges = 8760 + 1
         # maximum storage capacity in Wh
         # Wmax only initialized, input from gui
         self.w_max = 100
@@ -146,8 +146,8 @@ class Battery:
         x = self.from_grid
         return x
 
-    def calc_soc(self, rad, bat_capacity, cons_ener, p_mpp):
-        t_len = int(len(rad))
+    def calc_soc(self, bat_capacity, cons_ener, p_mpp):
+        t_len = int(len(p_mpp))
         # Wmax input from GUI
         self.w_max = int(bat_capacity)
 
@@ -240,7 +240,6 @@ class Costs:
 
         p_cons = cons_ener  # power req by consumer
 
-
         if len(rad) < 145:  # indicates forecast, then without investment
             for i in range(self.t_len):
                 cost_grid = self.cost_kwh * pow_from_grid
@@ -249,7 +248,7 @@ class Costs:
                 self.total_costs_sol[i + 1] = self.total_costs_sol[
                                               i] + cost_grid[i]  # for short-term prediction without investment costs
         else:
-            self.total_costs_sol[0] = -cost_solar - cost_battery
+            self.total_costs_sol[0] = cost_solar + cost_battery
 
 
             # calc the costs for the energy required from the grid (with solar panels)
@@ -270,9 +269,9 @@ class Costs:
             for i in range(inp_years):
                 # extrapolate the costs over the desired number of years
                 # Barwertmethode
-                self.total_costs[i+1] = self.total_costs[i]-(slope1*365*self.cost_var[i] +
+                self.total_costs[i+1] = self.total_costs[i]+(slope1*365*self.cost_var[i] +
                                                              self.cost_basic)*(1+self.inflation)**(-(i+1))
-                self.total_costs_sol[i+1] = self.total_costs_sol[i]-(slope*365*self.cost_var[i] +
+                self.total_costs_sol[i+1] = self.total_costs_sol[i]+(slope*365*self.cost_var[i] +
                                                 self.cost_operate + self.cost_basic - slope2*365*self.feedInTariff) * \
                                                 (1+self.inflation)**(-(i+1))
 

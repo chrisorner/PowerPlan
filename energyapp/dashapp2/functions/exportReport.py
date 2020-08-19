@@ -7,9 +7,10 @@ from xhtml2pdf import pisa
 import json
 import requests
 from requests.auth import HTTPBasicAuth
+import os
 
-username = 'christianorner' # Replace with YOUR USERNAME
-api_key = 'rDZwRMFq2BJ5ixdMlf3I' # Replace with YOUR API KEY
+username = os.getenv('PLOTLY_USERNAME',None)
+api_key = os.getenv('PLOTLY_API_KEY', None)
 auth = HTTPBasicAuth(username, api_key)
 headers = {'Plotly-Client-Platform': 'python'}
 

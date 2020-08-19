@@ -10,10 +10,9 @@ from pvlib import pvsystem
 import plotly.graph_objs as go
 import chart_studio.plotly as py
 from chart_studio.tools import set_credentials_file
+from energyapp.dashapp2.functions.compareBattery import get_battery_costs
 
-username = 'christianorner' # Replace with YOUR USERNAME
-api_key = 'rDZwRMFq2BJ5ixdMlf3I' # Replace with YOUR API KEY
-set_credentials_file(username = username, api_key= api_key)
+#set_credentials_file(username = username, api_key= api_key)
 
 
 # load energy constumption data
@@ -51,7 +50,8 @@ def register_callbacks(dashapp):
         Output('store_e_grid', 'children'),
         Output('store_e_sell', 'children'),
         Output('store_grid_costs', 'children'),
-        Output('store_solar_costs', 'children')],
+        Output('store_solar_costs', 'children'),
+        Output('store_cost_with_batteries', 'children')],
         [Input('sandia_database', 'value'),
         Input('store_location', 'children'),
         Input('button_calc', 'n_clicks')],
@@ -79,8 +79,6 @@ def register_callbacks(dashapp):
         time_end = datetime.date.today() + datetime.timedelta(days=5)
         end_time = time_end.strftime('2008-%m-%dT23:00')
 
-
-        bat_capacity = cap_bat
         bat_cost = float(cost_bat) * float(cap_bat)
 
         #if n_clicks:
@@ -103,29 +101,31 @@ def register_callbacks(dashapp):
 
         # End Solar Model
 
-        # sol = Solar(rad_val)
-
-        # Sol.calc_Pmpp(Ncells,Temp,rad_ampl,rad_width,Isc,Uoc)
-        #        p_sol = sol.calc_power(rad_val, area_cells, cell_obj)
         p_peak = area_cells * sol2.efficiency * 1000
-        bat = Battery(irrad_global)
-        bat.calc_soc(irrad_global, bat_capacity, consumption, p_sol)
+        bat = Battery()
+        bat1= Battery()
+        bat.calc_soc(cap_bat, consumption, p_sol)
         e_batt = bat.get_stored_energy()
         e_grid = bat.get_from_grid()
         e_sell = bat.get_w_unused()
 
         cost = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
+        cost1 = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
         cost.calc_costs(irrad_global, years_input, bat_cost, p_peak, cost_wp, consumption, e_grid, e_sell)
         grid_costs = cost.total_costs
         solar_costs = cost.total_costs_sol
 
+        
+
         p_cons = consumption
         irrad_array = irrad_global.values
+
+        costs_with_batteries = get_battery_costs(consumption, p_sol, irrad_global, years_input, float(cost_bat), p_peak, cost_wp, cost1, bat1)
 
 
         return json.dumps(p_sol.tolist()), json.dumps(p_cons.tolist()), json.dumps(irrad_array.tolist()), \
             json.dumps(e_batt.tolist()), json.dumps(e_grid.tolist()), json.dumps(e_sell.tolist()),\
-            json.dumps(grid_costs.tolist()), json.dumps(solar_costs.tolist())
+            json.dumps(grid_costs.tolist()), json.dumps(solar_costs.tolist()), json.dumps(costs_with_batteries.tolist())
 
 
     @dashapp.callback(
@@ -160,7 +160,38 @@ def register_callbacks(dashapp):
                     yaxis={'title': 'Power [W]'},
                     legend=dict(x=-.1, y=1.2))
             }
+    @dashapp.callback(
+        Output('graph-batteries', 'figure'),
+        #[Input('button_calc', 'n_clicks')],
+        [Input('store_cost_with_batteries','children')])
 
+    def batterie_costs(costs_batteries_json):
+
+        if costs_batteries_json:
+            batteries_list = json.loads(costs_batteries_json)
+            batteries = np.array(batteries_list)
+            years = list(range(0, 21))
+            trace = []
+            for i in range(np.size(batteries,1)):
+                trace.append(go.Scatter(
+                    x=years,
+                    y=batteries[:,i],
+                    mode='lines',
+                    marker={
+                        'size': 5,
+                        'line': {'width': 0.5}
+                    },
+                    name=f'{i+1}kw',
+                ))
+
+            return {
+                'data': trace,
+                'layout': go.Layout(
+                    title='Solar Power',
+                    xaxis={'title': 'Years'},
+                    yaxis=dict(title= 'Costs [EUR]',range=[0,30000]),
+                    legend=dict(x=-.1, y=1.2, orientation='h'))
+            }
 
     @dashapp.callback(
         [Output('graph-with-slider', 'figure'),
