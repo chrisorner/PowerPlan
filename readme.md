@@ -17,5 +17,5 @@ docker-compose up --build
 in the command line inside the local directory. (Docker Desktop must be installed)
 
 The app consists of:
-1) [Load profile generator](http://localhost:8000/profile/)
-2) [Simulation dashboard](http://localhost:8000/simulation/)
+1) Load profile generator: http://localhost:8000/profile/
+2) Simulation dashboard http://localhost:8000/simulation/
