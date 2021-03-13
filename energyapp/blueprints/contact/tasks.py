@@ -4,7 +4,7 @@ from energyapp import create_celery_app
 celery = create_celery_app()
 
 
-@celery.task()
+
 def deliver_contact_email(email, message):
     """
     Send a contact e-mail.

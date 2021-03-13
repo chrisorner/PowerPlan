@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, StringField, PasswordField, SubmitField, ValidationError
+from wtforms import HiddenField, StringField, PasswordField, SubmitField, ValidationError, BooleanField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 from wtforms_components import EmailField, Email
 from wtforms_alchemy import Unique
@@ -14,7 +14,7 @@ class LoginForm(FlaskForm):
     identity = StringField('Username or email',
                            [DataRequired(), Length(3, 254)])
     password = PasswordField('Password', [DataRequired(), Length(8, 128)])
-    # remember = BooleanField('Stay signed in')
+    remember = BooleanField('Stay signed in')
 
 
 class SignupForm(ModelForm):
@@ -26,6 +26,7 @@ class SignupForm(ModelForm):
             get_session=lambda: db.session
         )
     ])
+    username = db.Column(db.String(24), unique=True, index=True)
     password = PasswordField('Password', [DataRequired(), Length(8, 128)])
 
 

@@ -12,23 +12,23 @@ services:
 
   redis:
     image: 'redis:6.0-alpine'
-    command: redis-server --requirepass devpassword
     volumes:
       # stores data on workstation, so when docker stops and restarts the data is restored
-      - 'redis:/var/lib/redis/data'
-    ports:
-      - '6379:6379'
+      - 'redis:/data'
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
 
-  website:
+  web:
     build: .
     command: >
       gunicorn --preload -c "python:config.gunicorn" --reload "energyapp:create_app()"
-    environment:
-      PYTHONUNBUFFERED: 'true'
+    depends_on:
+      - 'postgres'
+      - 'redis'
     env_file:
       - '.env'
     volumes:
-      - '.:/energyapp'
+      - '.:/app'
     ports:
       - '8000:8000'
 
@@ -41,5 +41,5 @@ services:
       - '.:/energyapp'
 
 volumes:
-  postgres:
-  redis:
+  postgres: {}
+  redis: {}

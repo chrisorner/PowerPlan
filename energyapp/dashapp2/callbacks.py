@@ -1,3 +1,4 @@
+import os
 import datetime
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ import chart_studio.plotly as py
 from chart_studio.tools import set_credentials_file
 from energyapp.dashapp2.functions.compareBattery import get_battery_costs
 
-#set_credentials_file(username = username, api_key= api_key)
+#set_credentials_file(username = os.getenv('PLOTLY_USERNAME'), api_key= os.getenv('PLOTLY_API_KEY'))
 
 
 # load energy constumption data

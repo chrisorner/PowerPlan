@@ -14,6 +14,7 @@ from energyapp.blueprints.page import page
 from energyapp.blueprints.contact import contact
 from energyapp.blueprints.user import user
 from energyapp.blueprints.user.models import User
+from cli import register_cli_commands
 
 
 # define celery tasks
@@ -76,6 +77,7 @@ def create_app(settings_override=None):
     server.register_blueprint(contact)
     server.register_blueprint(user)
     server.register_blueprint(admin)
+    register_cli_commands(server)
     authentication(server, User)
     extensions(server)
 
