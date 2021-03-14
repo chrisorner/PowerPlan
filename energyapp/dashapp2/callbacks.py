@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import json
 from dash.dependencies import Input, Output, State
-from energyapp.dashapp2.functions.calculations import Solar2, Battery, Costs
+from energyapp.dashapp2.models import Solar2, Battery, Costs
 from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
 from energyapp.dashapp2.functions.exportReport import generate_report, convert_html_to_pdf, permanently_delete_files
 from pvlib import pvsystem
@@ -13,7 +13,7 @@ import chart_studio.plotly as py
 from chart_studio.tools import set_credentials_file
 from energyapp.dashapp2.functions.compareBattery import get_battery_costs
 
-#set_credentials_file(username = os.getenv('PLOTLY_USERNAME'), api_key= os.getenv('PLOTLY_API_KEY'))
+set_credentials_file(username = os.getenv('PLOTLY_USERNAME'), api_key= os.getenv('PLOTLY_API_KEY'))
 
 
 # load energy constumption data
