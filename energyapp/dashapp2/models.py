@@ -233,7 +233,6 @@ class Costs:
 
     def calc_costs(self, rad, inp_years, cost_bat, power, cost_per_kwp, cons_ener, pow_from_grid, pow_sell):
         # cost calculated for 6 days without investmetn  costs using global d_len
-
         #cost_battery = self.battery_invest(capacity, cost_bat)
         cost_battery = cost_bat
         cost_solar = self.solar_invest(power, cost_per_kwp)
@@ -276,4 +275,67 @@ class Costs:
                                                 (1+self.inflation)**(-(i+1))
 
 
-## End of Calculations ###
+if __name__ == "__main__":
+    import os
+    from energyapp.dashapp2.models import Solar2, Battery, Costs
+    from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
+    from energyapp.dashapp2.functions.compareBattery import get_battery_costs
+
+    years_input = 20
+    spec_cost_bat = 1500 #per kWh
+    cap_bat = 5 #kWh
+
+    bat_cost = spec_cost_bat * cap_bat
+
+    # if n_clicks:
+
+    # Solar Model
+    cost_inc = 0.01 #yearly increase of energy costs
+    infl = 0.02 #yearly inflation
+    area_cells = 50
+    tilt = 30
+    orient = 180
+    loc = "Berlin"
+    all_modules = pvsystem.retrieve_sam(name='SandiaMod')
+    module_names = list(all_modules.columns)
+    module = module_names[124]
+
+    sol2 = Solar2()
+    sol2.surface_tilt = tilt
+    sol2.surface_azimuth = orient
+    sol2.get_location(loc)
+    times = pd.date_range(start='1/1/2020', end='2020/12/31', freq='H', tz=sol2.tz)
+    times = times[:-1]
+    irradiation = sol2.calc_irrad(times, sol2.latitude, sol2.longitude, sol2.tz, loc)
+    irrad_global = irradiation['poa_global']
+    p_sol = sol2.pv_system(times, irradiation, module, area_cells)
+
+    # Battery model
+    base_dir = os.path.abspath(os.getcwd())
+    input_file = r'../dashapp1/alpg/output/results/Electricity_Profile.csv'
+    consumption = read_alpg_results(input_file)
+
+    p_peak = area_cells * sol2.efficiency * 1000
+    bat = Battery()
+    bat1 = Battery()
+    bat.calc_soc(cap_bat, consumption, p_sol)
+    e_batt = bat.get_stored_energy()
+    e_grid = bat.get_from_grid()
+    e_sell = bat.get_w_unused()
+
+
+    # Cost model
+    cost_kwh = 0.3 # 0.3 Eur/kwh
+    cost_wp = 1200 #Eur/kWp
+
+    cost = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
+    cost1 = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
+    cost.calc_costs(irrad_global, years_input, bat_cost, p_peak, cost_wp, consumption, e_grid, e_sell)
+    grid_costs = cost.total_costs
+    solar_costs = cost.total_costs_sol
+
+    p_cons = consumption
+    irrad_array = irrad_global.values
+
+    costs_with_batteries = get_battery_costs(consumption, p_sol, irrad_global, years_input, float(spec_cost_bat), p_peak,
+                                             cost_wp, cost1, bat1)

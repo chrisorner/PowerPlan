@@ -6,14 +6,11 @@ import json
 from dash.dependencies import Input, Output, State
 from energyapp.dashapp2.models import Solar2, Battery, Costs
 from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
-from energyapp.dashapp2.functions.exportReport import generate_report, convert_html_to_pdf, permanently_delete_files
 from pvlib import pvsystem
 import plotly.graph_objs as go
 import chart_studio.plotly as py
-from chart_studio.tools import set_credentials_file
 from energyapp.dashapp2.functions.compareBattery import get_battery_costs
 
-set_credentials_file(username = os.getenv('PLOTLY_USERNAME'), api_key= os.getenv('PLOTLY_API_KEY'))
 
 
 # load energy constumption data
@@ -33,14 +30,6 @@ def register_callbacks(dashapp):
         [Input('button_report', 'n_clicks')],
         [State('placeholder_report_url','children')])
         
-    def create_report(n_clicks, plot_url):
-       
-        graphs = [plot_url]
-        static_report,_ = generate_report(graphs)
-        convert_html_to_pdf(static_report, 'report.pdf')
-        return plot_url
-
-
 
     @dashapp.callback(
 
@@ -75,10 +64,10 @@ def register_callbacks(dashapp):
         years_input = int(years_input)
 
         # Find today's date and end date in 5 days
-        time_vec6d = np.linspace(0, 8580, 24 * 6)
-        today = datetime.datetime.today().strftime('2008-%m-%dT00:00')
-        time_end = datetime.date.today() + datetime.timedelta(days=5)
-        end_time = time_end.strftime('2008-%m-%dT23:00')
+        #time_vec6d = np.linspace(0, 8580, 24 * 6)
+        #today = datetime.datetime.today().strftime('2008-%m-%dT00:00')
+        #time_end = datetime.date.today() + datetime.timedelta(days=5)
+        #end_time = time_end.strftime('2008-%m-%dT23:00')
 
         bat_cost = float(cost_bat) * float(cap_bat)
 
@@ -195,8 +184,7 @@ def register_callbacks(dashapp):
             }
 
     @dashapp.callback(
-        [Output('graph-with-slider', 'figure'),
-        Output('placeholder_report_url', 'children')],
+        Output('graph-with-slider', 'figure'),
         [Input('select_Graph', 'value'),
         Input('years', 'value'),
         Input('store_rad', 'children')],
@@ -259,8 +247,6 @@ def register_callbacks(dashapp):
                 'line': {'width': 0.5, 'color': 'blue'}
             }
         ))
-        permanently_delete_files('christianorner',filetype_to_delete='plot')
-        permanently_delete_files('christianorner', filetype_to_delete='grid')
         data= list(traces[0:2])
         layout= go.Layout(
             xaxis={'title': 'Years'},
@@ -268,7 +254,6 @@ def register_callbacks(dashapp):
             legend=dict(x=-.1, y=1.2),
             plot_bgcolor= 'white')
         fig = go.Figure(data,layout)
-        plot_url = py.plot(fig, auto_open=False)
 
         traces.append(go.Scatter(
                 x=rad_time[0:119],
@@ -327,7 +312,7 @@ def register_callbacks(dashapp):
                 yaxis={'title': 'Costs [EUR]'},
                 legend=dict(x=-.1, y=1.2))
 
-        }, plot_url
+        }
 
     #    elif sel_plot == 'power_graph':
     #    return {

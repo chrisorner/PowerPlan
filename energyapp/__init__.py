@@ -16,6 +16,8 @@ from energyapp.blueprints.user import user
 from energyapp.blueprints.user.models import User
 from cli import register_cli_commands
 
+from config.settings import Config
+
 
 # define celery tasks
 CELERY_TASK_LIST = [
@@ -50,7 +52,7 @@ def create_celery_app(app=None):
     return celery
 
 
-def create_app(settings_override=None):
+def create_app(config_class=Config):
     """
     Create a Flask application using the app factory pattern.
 
@@ -58,14 +60,14 @@ def create_app(settings_override=None):
     """
     server = Flask(__name__)
 
-    server.config.from_object('config.settings')
+    server.config.from_object(Config)
 
 #    if settings_override:
  #       server.config.update(settings_override)
 
-    server.logger.setLevel(server.config['LOG_LEVEL'])
+    #server.logger.setLevel(server.config['LOG_LEVEL'])
 
-    from energyapp.dashapp1.load_profile_generator import layout as layout1
+    from energyapp.dashapp1.layout import layout as layout1
     from energyapp.dashapp1.callbacks import register_callbacks as register_callbacks1
     register_dashapp(server, 'Dashapp 1', 'profile', layout1, register_callbacks1)
 
@@ -96,7 +98,6 @@ def register_dashapp(app, title, base_pathname, layout, register_callbacks_fun):
     my_dashapp = dash.Dash(__name__,
                            server=app,
                            url_base_pathname=f'/{base_pathname}/',
-                           assets_folder=get_root_path(__name__) + f'/{base_pathname}/assets/',
                            external_stylesheets=external_stylesheets,
                            meta_tags=[meta_viewport])
 

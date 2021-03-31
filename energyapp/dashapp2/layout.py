@@ -10,11 +10,11 @@ layout = html.Div([
 
     dbc.Nav(
             [
-                dbc.NavItem(dbc.NavLink('Home Page', href='/')),
-                dbc.NavItem(dbc.NavLink('Load Configuration', href='/apps/app1')),
-                dbc.NavItem(dbc.NavLink('Simulation', active=True, href='/apps/app2_noDB'))
+                dbc.NavItem(dbc.NavLink('Home Page', href='/', style= {'color': 'white'}, external_link=True)),
+                dbc.NavItem(dbc.NavLink('Load Configuration', href='/profile/', style= {'color': 'white'}, external_link=True)),
+                dbc.NavItem(dbc.NavLink('Simulation', active=True, href='/simulation/', style= {'color': 'white'}, external_link=True))
             ],
-            pills=True,
+            className= 'navbar navbar-expand-lg navbar-dark bg-dark fixed-top'
         ),
 
     html.Div([
@@ -153,7 +153,6 @@ layout = html.Div([
         html.P(id='placeholder_database_entry', style={'display': 'none'}),
         html.Div(id= 'placeholder_delete_db',style={'display': 'none'}),
         html.Div(id='placeholder_report', style={'display': 'none'}),
-        html.Div(id='placeholder_report_url', style={'display': 'none'}),
         html.Div(id='store_p_sol', style={'display': 'none'}),
         html.Div(id='store_p_cons', style={'display': 'none'}),
         html.Div(id='store_rad', style={'display': 'none'}),
