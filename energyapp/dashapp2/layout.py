@@ -23,10 +23,9 @@ layout = html.Div([
             dcc.Dropdown(
                 id='select_Graph',
                 options=[
-                    {'label': 'Radiation & Consumption', 'value': 'rad_graph'},
-                    {'label': 'Energy Overview', 'value': 'power_graph'},
-                    {'label': 'Costs', 'value': 'cost_graph'}
-                ], value= 'rad_graph')
+                    {'label': 'Costs', 'value': 'cost_graph'},
+                    {'label': 'Energy Overview', 'value': 'power_graph'}
+                ], value= 'cost_graph')
         ], className='col-3'),
 
     ], className='row'),

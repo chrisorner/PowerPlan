@@ -17,13 +17,12 @@
 
 
 import sys, random
-print(sys.path)
 from energyapp.dashapp1.alpg.configs import external_inputs
 from energyapp.dashapp1.alpg.household_list import householdList
 
 from energyapp.dashapp1.alpg import houses
 
-class neighbourhood:
+def neighbourhood():
 	houseList = []
 	pvList = [0] * len(householdList)
 	batteryList = [0] * len(householdList)
@@ -129,3 +128,5 @@ class neighbourhood:
 					householdList[i].House.addBattery(external_inputs.capacityBatteryMedium, external_inputs.powerBatteryMedium)
 				else:
 					householdList[i].House.addBattery(external_inputs.capacityBatterySmall, external_inputs.powerBatterySmall)
+
+	return householdList

@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 def read_alpg_data(start, end):
-    print("read_data locaction: " + os.getcwd())
+    #print("read_data locaction: " + os.getcwd())
 
     E_cons= pd.read_csv("energyapp/dashapp1/alpg/output/results/Electricity_Profile.csv",names=['Total'])
     E_cons['Electronics']=pd.read_csv("energyapp/dashapp1/alpg/output/results/Electricity_Profile_GroupElectronics.csv")
@@ -11,6 +11,7 @@ def read_alpg_data(start, end):
     E_cons['Lighting']=pd.read_csv("energyapp/dashapp1/alpg/output/results/Electricity_Profile_GroupLighting.csv")
     E_cons['Other']=pd.read_csv("energyapp/dashapp1/alpg/output/results/Electricity_Profile_GroupOther.csv")
     E_cons['Standby']=pd.read_csv("energyapp/dashapp1/alpg/output/results/Electricity_Profile_GroupStandby.csv")
+    E_cons['HeatDemand'] = pd.read_csv("energyapp/dashapp1/alpg/output/results/Heatdemand_Profile.csv")
     #E_cons.index = E_cons.index.map(str)
     date_time= pd.date_range(start='2018-01-01', end='2018-12-31 23:59:00', freq= 'T')
     E_cons['Time']= date_time

@@ -15,25 +15,8 @@ from geopy.exc import GeocoderTimedOut
 import pvlib
 from pvlib import pvsystem
 from pvlib.temperature import sapm_cell, TEMPERATURE_MODEL_PARAMETERS
-#from pvlib.forecast import GFS, NAM, NDFD, HRRR, RAP
 
-#np.set_printoptions(threshold=np.nan)
-#from scipy.optimize import fsolve
-
-
-#class Solar:
-
-#    def __init__(self, rad):
-#        t_ges = len(rad)
-#        self.P_solar = np.zeros(t_ges)
-
-#    def calc_power(self, rad, area, cell):
-#        efficiency = cell.efficiency
-#        self.P_solar = [i*area*efficiency/100 for i in rad]
-#        return self.P_solar
-
-
-class Solar2:
+class Solar:
 
     def __init__(self):
 

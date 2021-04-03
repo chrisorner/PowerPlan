@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import json
 from dash.dependencies import Input, Output, State
-from energyapp.dashapp2.models import Solar2, Battery, Costs
+from energyapp.dashapp2.models import Solar, Battery, Costs
 from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
 from pvlib import pvsystem
 import plotly.graph_objs as go
@@ -14,7 +14,11 @@ from energyapp.dashapp2.functions.compareBattery import get_battery_costs
 
 
 # load energy constumption data
-consumption = read_alpg_results('energyapp/dashapp1/alpg/output/results/Electricity_Profile.csv')
+consumption_profile = 'energyapp/dashapp1/alpg/output/results/Electricity_Profile_withHeat.csv'
+if os.path.exists(consumption_profile) and os.stat(consumption_profile).st_size != 0:
+    consumption = read_alpg_results(consumption_profile)
+else:
+    consumption = np.zeros(8760)
 
 
 def register_callbacks(dashapp):
@@ -79,38 +83,35 @@ def register_callbacks(dashapp):
         area_cells = float(area_cells)
         tilt = float(tilt)
         orient = float(orient)
-        sol2 = Solar2()
-        sol2.surface_tilt = tilt
-        sol2.surface_azimuth = orient
-        sol2.get_location(loc)
-        times = pd.date_range(start='1/1/2020', end='2020/12/31', freq='H', tz=sol2.tz)
+        sol = Solar()
+        sol.surface_tilt = tilt
+        sol.surface_azimuth = orient
+        sol.get_location(loc)
+        times = pd.date_range(start='1/1/2020', end='2020/12/31', freq='H', tz=sol.tz)
         times = times[:-1]
-        irradiation = sol2.calc_irrad(times, sol2.latitude, sol2.longitude, sol2.tz, loc)
+        irradiation = sol.calc_irrad(times, sol.latitude, sol.longitude, sol.tz, loc)
         irrad_global = irradiation['poa_global']
-        p_sol = sol2.pv_system(times, irradiation, module, area_cells)
+        p_sol = sol.pv_system(times, irradiation, module, area_cells)
 
         # End Solar Model
 
-        p_peak = area_cells * sol2.efficiency * 1000
+        p_peak = area_cells * sol.efficiency * 1000
         bat = Battery()
-        bat1= Battery()
         bat.calc_soc(cap_bat, consumption, p_sol)
         e_batt = bat.get_stored_energy()
         e_grid = bat.get_from_grid()
         e_sell = bat.get_w_unused()
 
         cost = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
-        cost1 = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
         cost.calc_costs(irrad_global, years_input, bat_cost, p_peak, cost_wp, consumption, e_grid, e_sell)
         grid_costs = cost.total_costs
         solar_costs = cost.total_costs_sol
 
-        
-
         p_cons = consumption
         irrad_array = irrad_global.values
 
-        costs_with_batteries = get_battery_costs(consumption, p_sol, irrad_global, years_input, float(cost_bat), p_peak, cost_wp, cost1, bat1)
+        costs_with_batteries = get_battery_costs(consumption, p_sol, irrad_global, years_input, float(cost_bat),
+                                                 p_peak, cost_wp, cost_inc, infl, cost_kwh)
 
 
         return json.dumps(p_sol.tolist()), json.dumps(p_cons.tolist()), json.dumps(irrad_array.tolist()), \
@@ -300,29 +301,38 @@ def register_callbacks(dashapp):
                 },
             ))
 
-        
+        if sel_plot == 'cost_graph':
+            display_data = {
+                'data': list(traces[0:2]),
+                'layout': go.Layout(
+                    title='Costs',
+                    xaxis={'title': 'Years'},
+                    yaxis={'title': 'Costs [EUR]'},
+                    legend=dict(x=-.1, y=1.2))
+            }
+        elif sel_plot == 'power_graph':
+            display_data = {
+                'data': list(traces[2:5]),
+                'layout': go.Layout(
+                    title='Energy Overview',
+                    xaxis={'title': 'Time'},
+                    yaxis={'title': 'Energy [kWh]', 'rangemode': 'tozero'},
+                    legend=dict(x=-.1, y=1.1, orientation='h'))
+            }
+        else:
+            display_data = {
+                        'data': list(traces[5]),
+                        'layout': go.Layout(
+                            title='Daily Radiation and Consumption',
+                            xaxis={'title': 'Time'},
+                            yaxis={'title': 'Radiation [W/m2]', 'range': [0, 1000]},
+                            legend=dict(x=-.1, y=1.2)
+                        )
+                    }
+
+        return display_data
 
 
-    #    if sel_plot == 'cost_graph':
-        return {
-            'data': list(traces[0:2]),
-            'layout': go.Layout(
-                title='Costs',
-                xaxis={'title': 'Years'},
-                yaxis={'title': 'Costs [EUR]'},
-                legend=dict(x=-.1, y=1.2))
-
-        }
-
-    #    elif sel_plot == 'power_graph':
-    #    return {
-    #        'data': list(traces[2:5]),
-    #        'layout': go.Layout(
-    #            title='Energy Overview',
-    #            xaxis={'title': 'Time'},
-    #            yaxis={'title': 'Energy [kWh]', 'rangemode': 'tozero'},
-    #            legend=dict(x=-.1, y=1.1, orientation='h'))
-    #    }
 
     #    elif sel_plot == 'rad_graph':
     #        return {

@@ -98,6 +98,6 @@ layout = html.Div([
 
 
 
-
+    html.Div(id='generate_profile_output'),
     html.Div(id='app-1-display-value')
 ])

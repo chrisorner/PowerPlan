@@ -22,6 +22,7 @@ import random
 #import neighbourhood
 from energyapp.dashapp1.alpg import neighbourhood
 from energyapp.dashapp1.alpg.configs import external_inputs
+from energyapp.dashapp1.alpg import writer
     
 
 def profilegenerator():
@@ -112,16 +113,16 @@ def profilegenerator():
 	random.seed(external_inputs.seed)
 
 	# Create empty files
-	external_inputs.writer.createEmptyFiles()
+	writer.createEmptyFiles()
 
 
-	neighbourhood.neighbourhood()
+	householdList = neighbourhood.neighbourhood()
 
-	external_inputsFile = []
+	#external_inputsFile = []
 
 	hnum = 0
 
-	householdList = external_inputs.householdList
+	#householdList = external_inputs.householdList
 	numOfHouseholds = len(householdList)
 
 	while len(householdList) > 0:
@@ -133,8 +134,8 @@ def profilegenerator():
 		householdList[0].reactivePowerProfile()
 		householdList[0].thermalGainProfile()
 
-		external_inputs.writer.writeHousehold(householdList[0], hnum)
-		external_inputs.writer.writeNeighbourhood(hnum)
+		writer.writeHousehold(householdList[0], hnum)
+		writer.writeNeighbourhood(hnum)
 
 		householdList[0].Consumption = None
 		householdList[0].Occupancy = None
