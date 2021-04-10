@@ -15,13 +15,16 @@
     #You should have received a copy of the GNU General Public License
     #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 
 # Default write into a new folder
-folder = 'alpg/output/output/'
+folder = 'energyapp/dashapp1/alpg/output/output/'
 
-cfgOutputDir = 'alpg/output/results'
+cfgOutputDir = 'energyapp/dashapp1/alpg/output/results'
 outputFolder = cfgOutputDir
-cfgFile = 'alpg/configs/example_external_inputs'
+print(os.getcwd())
+cfgFile = 'energyapp/dashapp1/alpg/configs/external_inputs.py'
 
 #Parse arguments
 #opts, args = getopt.getopt(sys.argv[1:],"c:o:f",["config=","output=", "force"])

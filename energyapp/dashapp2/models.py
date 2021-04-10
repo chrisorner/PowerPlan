@@ -6,8 +6,6 @@ Created on Thu Jan 17 06:24:43 2019
 """
 
 import numpy as np
-import requests
-import numpy as np
 import pandas as pd
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut

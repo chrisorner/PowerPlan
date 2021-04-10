@@ -6,12 +6,8 @@ import json
 from dash.dependencies import Input, Output, State
 from energyapp.dashapp2.models import Solar, Battery, Costs
 from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
-from pvlib import pvsystem
 import plotly.graph_objs as go
-import chart_studio.plotly as py
 from energyapp.dashapp2.functions.compareBattery import get_battery_costs
-
-
 
 # load energy constumption data
 consumption_profile = 'energyapp/dashapp1/alpg/output/results/Electricity_Profile_withHeat.csv'
