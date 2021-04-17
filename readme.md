@@ -11,6 +11,7 @@
 
 ## Getting Started
 Inside this directory, type the following commands in the command prompt
+
 **Create new virtual environment**
 ```
 python -m venv .venv
