@@ -10,12 +10,21 @@
 
 
 ## Getting Started
-The app can be run locally using 
+Inside this directory, type the following commands in the command prompt
+**Create new virtual environment**
 ```
-docker-compose up --build 
+python -m venv .venv
 ```
-in the command line inside the local directory. (Docker Desktop must be installed)
-
-The app consists of:
-1) Load profile generator: http://localhost:8000/profile/
-2) Simulation dashboard http://localhost:8000/simulation/
+**Activate virtual environment**
+```
+.venv\Scripts\activate.bat
+```
+**Install packages**
+```
+pip install -r requirements.txt
+```
+**run application**
+```
+python run.py
+```
+To use the application you first need to sign up.
