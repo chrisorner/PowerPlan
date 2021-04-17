@@ -28,4 +28,3 @@ pip install -r requirements.txt
 ```
 python run.py
 ```
-To use the application you first need to sign up.
