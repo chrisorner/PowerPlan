@@ -54,6 +54,7 @@ class Config:
     #SQLALCHEMY_DATABASE_URI = db
     SQLALCHEMY_DATABASE_URI = 'sqlite:///site.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    FLASK_APP="energyapp"
 
     # User.
     SEED_NEWSLETTER_EMAIL = 'dev@local.host'
