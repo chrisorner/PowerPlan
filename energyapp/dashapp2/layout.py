@@ -48,9 +48,12 @@ layout = html.Div([
             dcc.Tab(label='Electrical Power', value='tab-power', children=[
                 html.Div([
                     dcc.Graph(id='graph_solpower', config={'displayModeBar': False})
-                ]),
+                ])]),
 
-            ])
+            dcc.Tab(label='Optimized Load', value='tab-optimize', children=[
+                html.Div([
+                    dcc.Graph(id='graph_optimize', config={'displayModeBar': False})
+                ])])
             ]),
         html.Div([
             html.Div([html.Button('Create Report', id='button_report', className='btn btn-primary')], className='col-3')

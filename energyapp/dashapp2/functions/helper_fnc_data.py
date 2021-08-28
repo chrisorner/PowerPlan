@@ -26,16 +26,19 @@ def consumer_data(path):
     return df_num
 
 # read results from alpg and convert to ndarray with hour intervals
-def read_alpg_results(path):
-    dataset = pd.read_csv(path, names=['consumption'])
+def read_alpg_results(path, column):
+    dataset = pd.read_csv(path)
     consumption = dataset.divide(1000)
     data_range = pd.date_range(start='1/1/2020', end='31/12/2020', freq='min')
     data_range = data_range[:-1]
     consumption['datetime'] = data_range
     consumption.set_index('datetime', inplace=True)
     consumption_resampled = consumption.resample('H').mean()
-    consumption_numeric = pd.to_numeric(consumption_resampled['consumption']).values
+    consumption_numeric = pd.to_numeric(consumption_resampled[column]).values
 
     return consumption_numeric
+
+def saveToJson(arrays):
+    pass
 
 

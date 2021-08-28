@@ -21,6 +21,7 @@ from energyapp.dashapp1.alpg.configLoader import outputFolder
 #config = importlib.import_module(cfgFile)
 
 import os
+import csv
 from energyapp.dashapp1.alpg import profilegentools
 
 def writeCsvLine(fname, hnum, line):
@@ -50,7 +51,16 @@ def writeCsvRow(fname, hnum, data):
 				line = line.rstrip()
 				line = line + ';' + str(round(data[j])) + '\n'
 				f.write(line)
-				j = j + 1	
+				j = j + 1
+
+def writeCsvRowSpecial(fname,data):
+	# writes all data into one file
+	with open(outputFolder + '/' + fname, 'w', newline='') as f:
+		fieldnames = list(data.keys())
+		writer = csv.DictWriter(f, fieldnames=fieldnames)
+		writer.writeheader()
+		for l in range(0, len(data[fieldnames[0]])):
+			writer.writerow({fieldnames[i]: data[fieldnames[i]][l] for i in range(len(fieldnames))})
 
 
 def createFile(fname):
@@ -63,6 +73,7 @@ def createFile(fname):
 # Function to create empty files to ensure that certain software doesn't crash for lack of files
 def createEmptyFiles():
 	createFile('Electricity_Profile.csv')
+	createFile('Electricity_Profile_ForOptimization.csv')
 	createFile('Electricity_Profile_GroupOther.csv')
 	createFile('Electricity_Profile_GroupInductive.csv')
 	createFile('Electricity_Profile_GroupFridges.csv')
@@ -115,7 +126,10 @@ def writeNeighbourhood(num):
 	pass
 
 def writeHousehold(house, num):
+	# Add heat demand to electricity profile
+	house.Consumption['HeatDemand'] = house.HeatDemand['Total']
 	#Save the profile:
+	writeCsvRowSpecial('Electricity_Profile_ForOptimization.csv', house.Consumption)
 	writeCsvRow('Electricity_Profile.csv', num, house.Consumption['Total'])
 	writeCsvRow('Electricity_Profile_GroupOther.csv', num, house.Consumption['Other'])
 	writeCsvRow('Electricity_Profile_GroupInductive.csv', num, house.Consumption['Inductive'])

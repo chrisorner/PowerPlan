@@ -84,7 +84,7 @@ layout = html.Div([
                           options=[
                               {'label': ' Total Energy', 'value': 'Total'},
                               {'label': ' Electronics', 'value': 'Electronics'},
-                              {'label': ' Fridge', 'value': 'Fridge'},
+                              {'label': ' Fridges', 'value': 'Fridges'},
                               {'label': ' Inductive', 'value': 'Inductive'},
                               {'label': ' Lighting', 'value': 'Lighting'},
                               {'label': ' Other', 'value': 'Other'},

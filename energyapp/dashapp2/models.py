@@ -8,7 +8,7 @@ Created on Thu Jan 17 06:24:43 2019
 import numpy as np
 import pandas as pd
 from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 # finally, we import the pvlib library
 import pvlib
 from pvlib import pvsystem
@@ -29,14 +29,15 @@ class Solar:
         self.efficiency = 0
 
     def get_location(self, city):
-        geolocator = Nominatim(user_agent="Enefso")
         try:
+            geolocator = Nominatim(user_agent="Enefso")
             location = geolocator.geocode(city)
             self.longitude = location.longitude
             self.latitude = location.latitude
-        except GeocoderTimedOut:
+        except GeocoderTimedOut or GeocoderUnavailable:
             self.longitude = 2.3514992
             self.latitude = 48.8566101
+            print("Can't connect to geolocator")
 
 
 

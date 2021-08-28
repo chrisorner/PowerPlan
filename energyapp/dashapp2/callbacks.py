@@ -10,11 +10,13 @@ import plotly.graph_objs as go
 from energyapp.dashapp2.functions.compareBattery import get_battery_costs
 
 # load energy constumption data
-consumption_profile = 'energyapp/dashapp1/alpg/output/results/Electricity_Profile_withHeat.csv'
+consumption_profile = 'energyapp/dashapp1/alpg/output/results/Electricity_Profile_ForOptimization.csv'
 if os.path.exists(consumption_profile) and os.stat(consumption_profile).st_size != 0:
-    consumption = read_alpg_results(consumption_profile)
+    load_elec = read_alpg_results(consumption_profile, "Total")
+    load_heat = read_alpg_results(consumption_profile, "HeatDemand")
 else:
-    consumption = np.zeros(8760)
+    load_elec = np.zeros(8760)
+    load_heat = np.zeros(8760)
 
 
 def register_callbacks(dashapp):
@@ -93,21 +95,38 @@ def register_callbacks(dashapp):
 
         p_peak = area_cells * sol.efficiency * 1000
         bat = Battery()
-        bat.calc_soc(cap_bat, consumption, p_sol)
+        bat.calc_soc(cap_bat, load_elec, p_sol)
         e_batt = bat.get_stored_energy()
         e_grid = bat.get_from_grid()
         e_sell = bat.get_w_unused()
 
         cost = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
-        cost.calc_costs(irrad_global, years_input, bat_cost, p_peak, cost_wp, consumption, e_grid, e_sell)
+        cost.calc_costs(irrad_global, years_input, bat_cost, p_peak, cost_wp, load_elec, e_grid, e_sell)
         grid_costs = cost.total_costs
         solar_costs = cost.total_costs_sol
 
-        p_cons = consumption
+        p_cons = load_elec
         irrad_array = irrad_global.values
 
-        costs_with_batteries = get_battery_costs(consumption, p_sol, irrad_global, years_input, float(cost_bat),
+        costs_with_batteries = get_battery_costs(load_elec, p_sol, irrad_global, years_input, float(cost_bat),
                                                  p_peak, cost_wp, cost_inc, infl, cost_kwh)
+
+        exportJson = True
+
+        if exportJson:
+            temp = np.ones(8760)*10
+            elec_price_in = np.ones(8760)*0.30
+            gas_price = np.ones(8760)*0.07
+            elec_price_out= np.ones(8760)*0.11
+            ev_aval = np.ones(8760)
+            data = np.stack((temp, p_sol,load_heat,load_elec,elec_price_in,gas_price,elec_price_out, ev_aval), axis=1)
+            df = pd.DataFrame(data, columns=["temperature", "solar_power", "load_heat", "load_elec", "ele_price_in", "gas_price", "ele_price_out", "ev_aval"])
+            df_selected = df.iloc[0:48]
+            #df_json = df.to_json(orient="columns")
+            df_json = df_selected.to_json(orient="columns")
+            with open("data.json", "w") as jsonFile:
+                jsonFile.write(df_json)
+
 
 
         return json.dumps(p_sol.tolist()), json.dumps(p_cons.tolist()), json.dumps(irrad_array.tolist()), \
@@ -328,15 +347,19 @@ def register_callbacks(dashapp):
 
         return display_data
 
+    @dashapp.callback(
+        Output('graph_optimize', 'figure'),
+        [Input('store_p_sol', 'children')]
+    )
 
+    def update_graph_costs(sol_power_json):
+        sol_power = [i/1000 for i in json.loads(sol_power_json)]
+        df = pd.DataFrame(
+            {"solar_power": sol_power,
+             "load_elec": load_elec,
+             "heat_load": load_heat}
+        )
 
-    #    elif sel_plot == 'rad_graph':
-    #        return {
-    #            'data': list(traces[5]),
-    #            'layout': go.Layout(
-    #                title='Daily Radiation and Consumption',
-    #                xaxis={'title': 'Time'},
-    #                yaxis={'title': 'Radiation [W/m2]', 'range': [0, 1000]},
-    #                legend=dict(x=-.1, y=1.2)
-    #            )
-    #        }
+        single_day = df.loc[0:23]
+        # call the function in the model from here
+        print(single_day)
