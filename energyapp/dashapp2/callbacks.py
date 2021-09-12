@@ -7,12 +7,17 @@ from dash.dependencies import Input, Output, State
 from energyapp.dashapp2.models import Solar, Battery, Costs
 from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
 import plotly.graph_objs as go
-from energyapp.dashapp2.functions.compareBattery import get_battery_costs
+from energyapp.dashapp2.functions.helper_fnc_calc import get_battery_costs, get_solar_power
+
+startTime = "20200101"
+endTime = "20201231"
+freq = "H"
+
 
 # load energy constumption data
 consumption_profile = 'energyapp/dashapp1/alpg/output/results/Electricity_Profile_ForOptimization.csv'
 if os.path.exists(consumption_profile) and os.stat(consumption_profile).st_size != 0:
-    load_elec = read_alpg_results(consumption_profile, "Total")
+    load_elec = read_alpg_results(consumption_profile, "Total", start=startTime, end=endTime, freq=freq)
     load_heat = read_alpg_results(consumption_profile, "HeatDemand")
 else:
     load_elec = np.zeros(8760)
@@ -73,26 +78,17 @@ def register_callbacks(dashapp):
 
         bat_cost = float(cost_bat) * float(cap_bat)
 
-        #if n_clicks:
-
-            # Solar Model
+        # Solar Model
         cost_inc= float(cost_inc)
         infl = float(infl)
         area_cells = float(area_cells)
         tilt = float(tilt)
         orient = float(orient)
         sol = Solar()
-        sol.surface_tilt = tilt
-        sol.surface_azimuth = orient
-        sol.get_location(loc)
-        times = pd.date_range(start='1/1/2020', end='2020/12/31', freq='H', tz=sol.tz)
-        times = times[:-1]
-        irradiation = sol.calc_irrad(times, sol.latitude, sol.longitude, sol.tz, loc)
-        irrad_global = irradiation['poa_global']
-        p_sol = sol.pv_system(times, irradiation, module, area_cells)
+        _, irrad_global, p_sol = get_solar_power(solar_instance=sol, area=area_cells, tilt= tilt, orient=orient, start=startTime,
+                                              end=endTime, freq=freq)
 
-        # End Solar Model
-
+        # Cost Model
         p_peak = area_cells * sol.efficiency * 1000
         bat = Battery()
         bat.calc_soc(cap_bat, load_elec, p_sol)
@@ -111,7 +107,7 @@ def register_callbacks(dashapp):
         costs_with_batteries = get_battery_costs(load_elec, p_sol, irrad_global, years_input, float(cost_bat),
                                                  p_peak, cost_wp, cost_inc, infl, cost_kwh)
 
-        exportJson = True
+        exportJson = False
 
         if exportJson:
             temp = np.ones(8760)*10
@@ -126,7 +122,6 @@ def register_callbacks(dashapp):
             df_json = df_selected.to_json(orient="columns")
             with open("data.json", "w") as jsonFile:
                 jsonFile.write(df_json)
-
 
 
         return json.dumps(p_sol.tolist()), json.dumps(p_cons.tolist()), json.dumps(irrad_array.tolist()), \

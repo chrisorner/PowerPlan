@@ -261,7 +261,7 @@ if __name__ == "__main__":
     import os
     from energyapp.dashapp2.models import Solar2, Battery, Costs
     from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
-    from energyapp.dashapp2.functions.compareBattery import get_battery_costs
+    from energyapp.dashapp2.functions.helper_fnc_calc import get_battery_costs
 
     years_input = 20
     spec_cost_bat = 1500 #per kWh

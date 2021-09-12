@@ -15,7 +15,9 @@ from energyapp.blueprints.contact import contact
 from energyapp.blueprints.user import user
 from energyapp.blueprints.user.models import User
 from cli import register_cli_commands
-
+from energyapp.api.resources import SolarPower, Consumption
+from flask_restful import Api
+from flask_cors import CORS
 from config.settings import Config
 
 
@@ -34,7 +36,6 @@ def create_celery_app(app=None):
     :return: Celery app
     """
     app = app or create_app()
-
     celery = Celery(app.import_name, broker=app.config['CELERY_BROKER_URL'],
                     include=CELERY_TASK_LIST)
     celery.conf.update(app.config)
@@ -59,8 +60,10 @@ def create_app(config_class=Config):
     :return: Flask app
     """
     server = Flask(__name__)
-
     server.config.from_object(Config)
+    api = Api(server)
+    CORS(server)
+
 
 #    if settings_override:
  #       server.config.update(settings_override)
@@ -86,8 +89,11 @@ def create_app(config_class=Config):
     if server.debug:
         server.wsgi_app = DebuggedApplication(server.wsgi_app, evalex=True)
 
-    return server
+    # api endpoints
+    api.add_resource(SolarPower, '/solar')
+    api.add_resource(Consumption, '/consumption')
 
+    return server
 
 
 def register_dashapp(app, title, base_pathname, layout, register_callbacks_fun):
@@ -100,7 +106,6 @@ def register_dashapp(app, title, base_pathname, layout, register_callbacks_fun):
                            url_base_pathname=f'/{base_pathname}/',
                            external_stylesheets=external_stylesheets,
                            meta_tags=[meta_viewport])
-
 
     with app.app_context():
         my_dashapp.title = title
