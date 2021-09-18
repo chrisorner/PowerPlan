@@ -49,7 +49,7 @@ class ConfigDocker:
 
 class Config:
     load_dotenv()
-
+    FLASK_ENV = os.getenv('FLASK_ENV', "development")
     SECRET_KEY = os.getenv('SECRET_KEY', None)
     #SQLALCHEMY_DATABASE_URI = db
     SQLALCHEMY_DATABASE_URI = 'sqlite:///site.db'
@@ -77,4 +77,5 @@ class Config:
     CELERY_ACCEPT_CONTENT = ['json']
     CELERY_TASK_SERIALIZER = 'json'
     CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_REDIS_MAX_CONNECTIONS = 5 
+    CELERY_REDIS_MAX_CONNECTIONS = 5
+
