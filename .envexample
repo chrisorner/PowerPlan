@@ -1,0 +1,39 @@
+PRODUCTION=False
+FLASK_ENV=development
+COMPOSE_PROJECT_NAME=energyapp
+SECRET_KEY=insecurekeyfordev
+
+# In development, having bytecode laying around can cause all sorts of weird
+# issues with Docker. These are *.pyc file and the __pycache__/ folder.
+PYTHONDONTWRITEBYTECODE=true
+
+# Which environment is running? This should be "development" or "production".
+
+# Which log level should be used for Python's logger?
+#LOG_LEVEL=DEBUG
+
+# You'll always want to set the POSTGRES_USER and POSTGRES_PASSWORD since the
+# postgres Docker image uses them for its default database user and password.
+POSTGRES_USER=energyapp
+POSTGRES_PASSWORD=password
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=energyapp
+
+
+# What mail server should you connect to?
+#MAIL_SERVER=smtp.gmail.com
+#MAIL_PORT=587
+#MAIL_USE_TLS=true
+#MAIL_USE_SSL=false
+MAIL_USERNAME=christianorner8@gmail.com
+MAIL_PASSWORD=oo4+hdafnr
+MAIL_DEFAULT_SENDER=smtp.gmail.com
+
+# With Docker for Windows / Mac / Linux then this default value should work.
+# If you have Docker running in a VM, put the VM's IP address here instead.
+SERVER_NAME=localhost:8000
+
+# Do you want code reloading to work with your app server? Don't do this in
+# production (it's turned off by default, so don't worry about it).
+WEB_RELOAD=true
