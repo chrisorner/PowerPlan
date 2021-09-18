@@ -26,8 +26,8 @@ POSTGRES_DB=energyapp
 #MAIL_PORT=587
 #MAIL_USE_TLS=true
 #MAIL_USE_SSL=false
-MAIL_USERNAME=christianorner8@gmail.com
-MAIL_PASSWORD=oo4+hdafnr
+MAIL_USERNAME=something@gmail.com
+MAIL_PASSWORD=NotaPassword
 MAIL_DEFAULT_SENDER=smtp.gmail.com
 
 # With Docker for Windows / Mac / Linux then this default value should work.
