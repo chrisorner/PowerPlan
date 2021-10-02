@@ -6,13 +6,10 @@ Created on Thu Jan 17 06:24:43 2019
 """
 
 import numpy as np
-import pandas as pd
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 # finally, we import the pvlib library
 import pvlib
-from pvlib import pvsystem
-from pvlib.temperature import sapm_cell, TEMPERATURE_MODEL_PARAMETERS
 
 class Solar:
 
@@ -47,39 +44,68 @@ class Solar:
  #       return forecast_data
 
     def calc_irrad(self, times, lat, lon, tz, city):
-        tus= pvlib.location.Location(lat, lon, tz=tz, altitude=0, name=city)
-        ephem_data = tus.get_solarposition(times)
-        irrad_data = tus.get_clearsky(times)
-        irrad_data.to_csv('irrad_data',index= False)
-        self.sun_zen = ephem_data['apparent_zenith']
-        self.air_mass = pvlib.atmosphere.get_relative_airmass(self.sun_zen)
-        dni_et = pvlib.irradiance.get_extra_radiation(times.dayofyear)
-        
-
-        total = pvlib.irradiance.get_total_irradiance(
-            self.surface_tilt, self.surface_azimuth,
-            ephem_data['apparent_zenith'], ephem_data['azimuth'],
-            dni=irrad_data['dni'], ghi=irrad_data['ghi'], dhi=irrad_data['dhi'],
-            dni_extra=dni_et, airmass=self.air_mass,
+        altitude = 20
+        location = pvlib.location.Location(lat, lon, tz=tz, altitude=altitude, name=city)
+        weather = pvlib.iotools.get_pvgis_tmy(lat, lon, map_variables=True)[0]
+        weather.index.name = "time"
+        # Change the year of TMY to match the year defined by the user
+        weather.reset_index(inplace=True)
+        weather["time"] = weather["time"].apply(lambda x: x.replace(year=times.year[0]))
+        weather.set_index("time", inplace=True)
+        solpos = pvlib.solarposition.get_solarposition(
+            time=weather.index,
+            latitude=lat,
+            longitude=lon,
+            altitude=altitude,
+            temperature=weather["temp_air"],
+            pressure=pvlib.atmosphere.alt2pres(altitude),
+                )
+        dni_extra = pvlib.irradiance.get_extra_radiation(weather.index)
+        self.air_mass = pvlib.atmosphere.get_relative_airmass(solpos['apparent_zenith'])
+        pressure = pvlib.atmosphere.alt2pres(altitude)
+        am_abs = pvlib.atmosphere.get_absolute_airmass(self.air_mass, pressure)
+        aoi = pvlib.irradiance.aoi(
+            self.surface_tilt,
+            self.surface_azimuth,
+            solpos["apparent_zenith"],
+            solpos["azimuth"],
+        )
+        total_irradiance = pvlib.irradiance.get_total_irradiance(
+            self.surface_tilt,
+            self.surface_azimuth,
+            solpos['apparent_zenith'],
+            solpos['azimuth'],
+            weather['dni'],
+            weather['ghi'],
+            weather['dhi'],
+            dni_extra=dni_extra,
             model='isotropic',
-            surface_type='urban')
+            surface_type='urban'
+        )
 
-        return total
+        return total_irradiance, weather, am_abs, aoi
 
-    def pv_system(self,times, irrad, module, cell_area):
+    def pv_system(self, irrad, weather, am_abs, aoi, module, cell_area):
 
-        wind= pd.Series(5,index= times)
-        temp= pd.Series(20, index= times)
-        pressure= 101325
-        airmass = self.air_mass
-        am_abs = pvlib.atmosphere.get_absolute_airmass(airmass, pressure)
-        solpos = pvlib.solarposition.get_solarposition(times, self.latitude, self.longitude)
-        #pvtemp = pvsystem.sapm_celltemp(irrad['poa_global'], wind, temp)
-        params = TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_glass']
-        pvtemp = sapm_cell(irrad['poa_global'], wind, temp, **params)
-
-        sandia_modules = pvsystem.retrieve_sam(name='SandiaMod')
+        sandia_modules = pvlib.pvsystem.retrieve_sam(name='SandiaMod')
         sandia_module = sandia_modules[module]
+        temperature_model_parameters = pvlib.temperature.TEMPERATURE_MODEL_PARAMETERS['sapm']['open_rack_glass_glass']
+        cell_temperature = pvlib.temperature.sapm_cell(
+            irrad['poa_global'],
+            weather["temp_air"],
+            weather["wind_speed"],
+            **temperature_model_parameters,
+        )
+        effective_irradiance = pvlib.pvsystem.sapm_effective_irradiance(
+            irrad['poa_direct'],
+            irrad['poa_diffuse'],
+            am_abs,
+            aoi,
+            sandia_module,
+        )
+
+        dc = pvlib.pvsystem.sapm(effective_irradiance, cell_temperature, sandia_module)
+
         self.area= sandia_module.loc['Area']
         I_mp = sandia_module.loc['Impo']
         V_mp = sandia_module.loc['Vmpo']
@@ -87,14 +113,7 @@ class Solar:
         #sandia_module= module
         #module_names = list(sandia_modules.columns)
 
-        aoi = pvlib.irradiance.aoi(self.surface_tilt, self.surface_azimuth,
-                                   solpos['apparent_zenith'], solpos['azimuth'])
-
-        effective_irradiance = pvlib.pvsystem.sapm_effective_irradiance(
-            irrad['poa_direct'], irrad['poa_diffuse'],
-            am_abs, aoi, sandia_module)
-        module_power = pvlib.pvsystem.sapm(effective_irradiance, pvtemp, sandia_module)
-        total_power = module_power['p_mp']/self.area*cell_area
+        total_power = dc['p_mp']/self.area*cell_area
 
         return total_power.values
 
@@ -256,68 +275,3 @@ class Costs:
                                                 self.cost_operate + self.cost_basic - slope2*365*self.feedInTariff) * \
                                                 (1+self.inflation)**(-(i+1))
 
-
-if __name__ == "__main__":
-    import os
-    from energyapp.dashapp2.models import Solar2, Battery, Costs
-    from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
-    from energyapp.dashapp2.functions.helper_fnc_calc import get_battery_costs
-
-    years_input = 20
-    spec_cost_bat = 1500 #per kWh
-    cap_bat = 5 #kWh
-
-    bat_cost = spec_cost_bat * cap_bat
-
-    # if n_clicks:
-
-    # Solar Model
-    cost_inc = 0.01 #yearly increase of energy costs
-    infl = 0.02 #yearly inflation
-    area_cells = 50
-    tilt = 30
-    orient = 180
-    loc = "Berlin"
-    all_modules = pvsystem.retrieve_sam(name='SandiaMod')
-    module_names = list(all_modules.columns)
-    module = module_names[124]
-
-    sol2 = Solar2()
-    sol2.surface_tilt = tilt
-    sol2.surface_azimuth = orient
-    sol2.get_location(loc)
-    times = pd.date_range(start='1/1/2020', end='2020/12/31', freq='H', tz=sol2.tz)
-    times = times[:-1]
-    irradiation = sol2.calc_irrad(times, sol2.latitude, sol2.longitude, sol2.tz, loc)
-    irrad_global = irradiation['poa_global']
-    p_sol = sol2.pv_system(times, irradiation, module, area_cells)
-
-    # Battery model
-    base_dir = os.path.abspath(os.getcwd())
-    input_file = r'../dashapp1/alpg/output/results/Electricity_Profile.csv'
-    consumption = read_alpg_results(input_file)
-
-    p_peak = area_cells * sol2.efficiency * 1000
-    bat = Battery()
-    bat1 = Battery()
-    bat.calc_soc(cap_bat, consumption, p_sol)
-    e_batt = bat.get_stored_energy()
-    e_grid = bat.get_from_grid()
-    e_sell = bat.get_w_unused()
-
-
-    # Cost model
-    cost_kwh = 0.3 # 0.3 Eur/kwh
-    cost_wp = 1200 #Eur/kWp
-
-    cost = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
-    cost1 = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
-    cost.calc_costs(irrad_global, years_input, bat_cost, p_peak, cost_wp, consumption, e_grid, e_sell)
-    grid_costs = cost.total_costs
-    solar_costs = cost.total_costs_sol
-
-    p_cons = consumption
-    irrad_array = irrad_global.values
-
-    costs_with_batteries = get_battery_costs(consumption, p_sol, irrad_global, years_input, float(spec_cost_bat), p_peak,
-                                             cost_wp, cost1, bat1)

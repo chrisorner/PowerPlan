@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas.tseries.offsets import DateOffset
 import numpy as np
 from energyapp.dashapp2.models import Solar, Battery, Costs
 
@@ -13,11 +14,13 @@ def get_solar_power(solar_instance, area, tilt, orient, start='20200101', end='2
     solar_instance.surface_tilt = tilt
     solar_instance.surface_azimuth = orient
     solar_instance.get_location(loc)
-    times = pd.date_range(start=start, end=end, freq=freq, tz=solar_instance.tz)
+    # end date inclusive
+    times = pd.date_range(start=start, end=pd.to_datetime(end) + pd.offsets.Day(), freq=freq, tz=solar_instance.tz)
+    # Don't send the last time which is 0:00 of next day
     times = times[:-1]
-    irradiation = solar_instance.calc_irrad(times, solar_instance.latitude, solar_instance.longitude, solar_instance.tz, loc)
+    irradiation, weather, am_abs, aoi = solar_instance.calc_irrad(times, solar_instance.latitude, solar_instance.longitude, solar_instance.tz, loc)
     irrad_global = irradiation['poa_global']
-    p_sol = solar_instance.pv_system(times, irradiation, module, area_cells)
+    p_sol = solar_instance.pv_system(irradiation, weather, am_abs, aoi, module, area_cells)
     return times, irrad_global, p_sol
 
 
