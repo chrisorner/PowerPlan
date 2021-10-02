@@ -11,6 +11,7 @@ import sys
 from werkzeug.security import generate_password_hash, check_password_hash
 from lib.util_sqlalchemy import ResourceMixin, AwareDateTime
 from energyapp.extensions import db
+from hashlib import md5
 
 from itsdangerous import URLSafeTimedSerializer, \
     TimedJSONWebSignatureSerializer

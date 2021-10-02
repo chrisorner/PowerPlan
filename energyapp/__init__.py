@@ -53,7 +53,7 @@ def create_celery_app(app=None):
     return celery
 
 
-def create_app(config_class=Config):
+def create_app():
     """
     Create a Flask application using the app factory pattern.
 
