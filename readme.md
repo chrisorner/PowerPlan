@@ -24,6 +24,8 @@ python -m venv .venv
 ```
 pip install -r requirements.txt
 ```
+**Rename .envexample to .env**
+
 **run application**
 ```
 python run.py
