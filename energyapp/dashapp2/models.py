@@ -115,7 +115,7 @@ class Solar:
 
         total_power = dc['p_mp']/self.area*cell_area
 
-        return total_power.values
+        return total_power
 
 
 class Battery:
