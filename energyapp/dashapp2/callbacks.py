@@ -9,8 +9,8 @@ from energyapp.dashapp2.functions.helper_fnc_data import read_alpg_results
 import plotly.graph_objs as go
 from energyapp.dashapp2.functions.helper_fnc_calc import get_battery_costs, get_solar_power
 
-startTime = "20200101"
-endTime = "20201231"
+startTime = "20180101"
+endTime = "20181231"
 freq = "H"
 
 
@@ -18,7 +18,7 @@ freq = "H"
 consumption_profile = 'energyapp/dashapp1/alpg/output/results/Electricity_Profile_ForOptimization.csv'
 if os.path.exists(consumption_profile) and os.stat(consumption_profile).st_size != 0:
     load_elec = read_alpg_results(consumption_profile, "Total", start=startTime, end=endTime, freq=freq)
-    load_heat = read_alpg_results(consumption_profile, "HeatDemand")
+    load_heat = read_alpg_results(consumption_profile, "HeatDemand", start=startTime, end=endTime, freq=freq)
 else:
     load_elec = np.zeros(8760)
     load_heat = np.zeros(8760)
@@ -102,7 +102,6 @@ def register_callbacks(dashapp):
         solar_costs = cost.total_costs_sol
 
         p_cons = load_elec
-        irrad_array = irrad_global.values
 
         costs_with_batteries = get_battery_costs(load_elec, p_sol, irrad_global, years_input, float(cost_bat),
                                                  p_peak, cost_wp, cost_inc, infl, cost_kwh)
@@ -124,7 +123,7 @@ def register_callbacks(dashapp):
                 jsonFile.write(df_json)
 
 
-        return json.dumps(p_sol.tolist()), json.dumps(p_cons.tolist()), json.dumps(irrad_array.tolist()), \
+        return json.dumps(p_sol.tolist()), json.dumps(load_elec.tolist()), json.dumps(irrad_global.tolist()), \
             json.dumps(e_batt.tolist()), json.dumps(e_grid.tolist()), json.dumps(e_sell.tolist()),\
             json.dumps(grid_costs.tolist()), json.dumps(solar_costs.tolist()), json.dumps(costs_with_batteries.tolist())
 
@@ -157,7 +156,7 @@ def register_callbacks(dashapp):
                 'data': trace1,
                 'layout': go.Layout(
                     title='Solar Power',
-                    xaxis={'title': 'Days/Years'},
+                    xaxis={'title': 'Time [h]'},
                     yaxis={'title': 'Power [W]'},
                     legend=dict(x=-.1, y=1.2))
             }
@@ -211,7 +210,6 @@ def register_callbacks(dashapp):
         traces= []
 
 
-    #    p_cons = json.loads(p_cons_json)
         try:
             rad_val = json.loads(rad_val_json)
             e_batt = json.loads(e_batt_json)
@@ -356,5 +354,4 @@ def register_callbacks(dashapp):
         )
 
         single_day = df.loc[0:23]
-        # call the function in the model from here
-        print(single_day)
+

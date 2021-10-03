@@ -1,5 +1,4 @@
 import pandas as pd
-from pandas.tseries.offsets import DateOffset
 import numpy as np
 from energyapp.dashapp2.models import Solar, Battery, Costs
 
@@ -14,14 +13,24 @@ def get_solar_power(solar_instance, area, tilt, orient, start='20200101', end='2
     solar_instance.surface_tilt = tilt
     solar_instance.surface_azimuth = orient
     solar_instance.get_location(loc)
-    # end date inclusive
-    times = pd.date_range(start=start, end=pd.to_datetime(end) + pd.offsets.Day(), freq=freq, tz=solar_instance.tz)
+    # pd.offset to make end date inclusive, tz must be UTC because weather data is UTC
+    times = pd.date_range(start=start, end=pd.to_datetime(end) + pd.offsets.Day(), freq=freq, tz="UTC")
     # Don't send the last time which is 0:00 of next day
     times = times[:-1]
     irradiation, weather, am_abs, aoi = solar_instance.calc_irrad(times, solar_instance.latitude, solar_instance.longitude, solar_instance.tz, loc)
     irrad_global = irradiation['poa_global']
     p_sol = solar_instance.pv_system(irradiation, weather, am_abs, aoi, module, area_cells)
-    return times, irrad_global, p_sol
+    if "min" in freq:
+        # if freq is in minutes then upsample and use linear interpolation. Else sum the values for downsampling
+        irrad_global_resampled = irrad_global.resample(freq).interpolate(method='linear')
+        p_sol_resampled = p_sol.resample(freq).interpolate(method='linear')
+    else:
+        irrad_global_resampled = irrad_global.resample(freq).mean()
+        p_sol_resampled = p_sol.resample(freq).mean()
+    irrad_global_resampled = irrad_global_resampled[times[0]:times[-1]]
+    p_sol_resampled = p_sol_resampled[times[0]:times[-1]]
+
+    return times, irrad_global_resampled.values, p_sol_resampled.values
 
 
 def get_battery_costs(consumption, p_sol, irrad_global, years_input, bat_cost_kw, p_peak, cost_wp, cost_inc, infl,

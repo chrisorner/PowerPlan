@@ -30,7 +30,7 @@ def consumer_data(path):
 def read_alpg_results(path, column, start="20200101", end="20201231", freq="H"):
     dataset = pd.read_csv(path)
     consumption = dataset.divide(1000)
-    data_range = pd.date_range(start=start, end=end, freq='min')
+    data_range = pd.date_range(start=start, end=pd.to_datetime(end) + pd.offsets.Day(), freq='min')
     data_range = data_range[:-1]
     consumption['datetime'] = data_range
     consumption.set_index('datetime', inplace=True)
