@@ -26,6 +26,7 @@ parser.add_argument('orient')
 parser.add_argument('location')
 parser.add_argument('start_time')
 parser.add_argument('end_time')
+parser.add_argument('freq')
 
 
 class SolarPower(Resource):
@@ -38,7 +39,7 @@ class SolarPower(Resource):
         orient = float(args["orient"])
         start_time = args["start_time"]
         end_time = args["end_time"]
-        freq = "min"
+        freq = args["freq"]
         location = args["location"]
         time, _, p_sol = get_solar_power(solar_instance=sol, area=area_cells, tilt=tilt, orient=orient, start=start_time,
                                          end=end_time, freq=freq, loc=location)

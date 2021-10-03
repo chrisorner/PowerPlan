@@ -97,7 +97,7 @@ layout = html.Div([
                 html.H4('Cost Data', className='col-12'),
                 html.Div([
                     html.Label('Battery [EUR/kWh]', id='cost_label'),
-                    dcc.Input(id='cost_bat', value='1500', type='text', className='form-control')
+                    dcc.Input(id='cost_bat', value='1100', type='text', className='form-control')
                 ], className='col-2'),
                 html.Div([
                     html.Label('Grid supply [EUR/kWh]', id='cost_label2'),
@@ -105,7 +105,7 @@ layout = html.Div([
                 ], className='col-2'),
                 html.Div([
                     html.Label('Solar Panels [EUR/kWp]', id='cost_label3'),
-                    dcc.Input(id='cost_wp', value='1923', type='text', className='form-control')
+                    dcc.Input(id='cost_wp', value='1000', type='text', className='form-control')
                 ], className='col-2'),
                 html.Div([
                     html.Label('Number of Years', id='years_label'),
