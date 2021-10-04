@@ -1,4 +1,6 @@
 Flask==1.1.2
+Flask-RESTful==0.3.9
+Flask-Cors==1.10.3
 werkzeug==1.0.1
 python-dotenv==0.17.0
 
@@ -41,7 +43,7 @@ Flask-Login==0.5.0
 astral==2.1
 pandas==1.2.3
 numpy==1.20.1
-pvlib==0.8.1
+pvlib==0.9.1
 plotly==4.14.3
 geopy==2.1.0
 tables==3.6.1
