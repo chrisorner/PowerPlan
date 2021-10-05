@@ -43,7 +43,7 @@ Flask-Login==0.5.0
 astral==2.1
 pandas==1.2.3
 numpy==1.20.1
-pvlib==0.9.1
+pvlib==0.9.0
 plotly==4.14.3
 geopy==2.1.0
 tables==3.6.1
