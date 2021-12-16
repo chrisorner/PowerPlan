@@ -187,10 +187,12 @@ class User(UserMixin, ResourceMixin, db.Model):
         """
         self.sign_in_count += 1
 
+        self.current_sign_in_on = datetime.datetime.now(pytz.utc)
+        self.current_sign_in_ip = ip_address
+
         self.last_sign_in_on = self.current_sign_in_on
         self.last_sign_in_ip = self.current_sign_in_ip
 
-        self.current_sign_in_on = datetime.datetime.now(pytz.utc)
-        self.current_sign_in_ip = ip_address
+        
 
         return self.save()

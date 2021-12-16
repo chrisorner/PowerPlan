@@ -1,9 +1,9 @@
 from flask_restful import reqparse, Resource, fields, marshal_with
 from flask import jsonify
 import pandas as pd
-from energyapp.dashapp2.models import Solar
-from energyapp.dashapp2.functions.helper_fnc_calc import get_solar_power
-from energyapp.dashapp2.functions.helper_fnc_data import get_consumption, get_token
+from energyapp.dashapp_simulation.models import Solar
+from energyapp.dashapp_simulation.functions.helper_fnc_calc import get_solar_power
+from energyapp.dashapp_simulation.functions.helper_fnc_data import get_consumption, get_token
 
 token = get_token()
 startTime = "20210701"

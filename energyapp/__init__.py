@@ -70,13 +70,13 @@ def create_app():
 
     #server.logger.setLevel(server.config['LOG_LEVEL'])
 
-    from energyapp.dashapp1.layout import layout as layout1
-    from energyapp.dashapp1.callbacks import register_callbacks as register_callbacks1
-    register_dashapp(server, 'Dashapp 1', 'profile', layout1, register_callbacks1)
+    from energyapp.dashapp_profile.layout import layout as layout1
+    from energyapp.dashapp_profile.callbacks import register_callbacks as register_callbacks1
+    register_dashapp(server, 'Dashapp 1', 'dashapp_profile', layout1, register_callbacks1)
 
-    from energyapp.dashapp2.layout import layout as layout2
-    from energyapp.dashapp2.callbacks import register_callbacks as register_callbacks2
-    register_dashapp(server, 'Dashapp 2', 'simulation', layout2, register_callbacks2)
+    from energyapp.dashapp_simulation.layout import layout as layout2
+    from energyapp.dashapp_simulation.callbacks import register_callbacks as register_callbacks2
+    register_dashapp(server, 'Dashapp 2', 'dashapp_simulation', layout2, register_callbacks2)
 
     server.register_blueprint(page)
     server.register_blueprint(contact)
@@ -99,13 +99,14 @@ def create_app():
 def register_dashapp(app, title, base_pathname, layout, register_callbacks_fun):
     # Meta tags for viewport responsiveness
     meta_viewport = {"name": "viewport", "content": "width=device-width, initial-scale=1, shrink-to-fit=no"}
-    external_stylesheets = ['https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css']
+    external_stylesheets = ['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css']
 
     my_dashapp = dash.Dash(__name__,
                            server=app,
                            url_base_pathname=f'/{base_pathname}/',
                            external_stylesheets=external_stylesheets,
-                           meta_tags=[meta_viewport])
+                           meta_tags=[meta_viewport],
+                           assets_folder=get_root_path(__name__) + f'/{base_pathname}' + '/assets/')
 
     with app.app_context():
         my_dashapp.title = title
