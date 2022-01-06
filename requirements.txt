@@ -29,7 +29,7 @@ WTForms-Alchemy== 0.16.9
 # This line is different than what's on video but we do cover this update in
 # more detail in the October 2019 update video.
 redis==3.5.3
-celery==4.4.6
+celery==5.2.2
 
 #utils
 fake-factory==0.7.4
