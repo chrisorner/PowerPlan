@@ -4,7 +4,7 @@ import os
 from energyapp.dashapp_profile.alpg.configLoader import cfgFile
 
 
-def set_parameters(numKids, yearly_cons, dist):
+def set_parameters(numKids, yearly_cons, dist, householdType):
 
     with open(cfgFile, 'r') as file:
         data = file.readlines()
@@ -12,7 +12,7 @@ def set_parameters(numKids, yearly_cons, dist):
     data[143] = 'numKids = ' + str(numKids) + '\n'
     data[144] = 'yearlyConsumption = ' + str(yearly_cons) + '\n'
     data[145] = 'distancetoWork = ' + str(dist) + '\n'
-
+    data[146] = f'householdType = "{householdType}" \n'
 
     with open(cfgFile, 'w') as file:
         file.writelines(data)

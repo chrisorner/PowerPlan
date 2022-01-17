@@ -18,11 +18,12 @@
 
 import sys, random
 from energyapp.dashapp_profile.alpg.configs import external_inputs
-from energyapp.dashapp_profile.alpg.household_list import householdList
+from energyapp.dashapp_profile.alpg.household_list import getHouseholdList
 
 from energyapp.dashapp_profile.alpg import houses
 
 def neighbourhood():
+	householdList = getHouseholdList(external_inputs.householdType)
 	houseList = []
 	pvList = [0] * len(householdList)
 	batteryList = [0] * len(householdList)

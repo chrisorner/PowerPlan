@@ -21,7 +21,7 @@ from energyapp.dashapp_profile.alpg.configLoader import outputFolder
 #config = importlib.import_module(cfgFile)
 
 import os
-import csv
+import csv, json
 from energyapp.dashapp_profile.alpg import profilegentools
 
 def writeCsvLine(fname, hnum, line):
@@ -53,14 +53,18 @@ def writeCsvRow(fname, hnum, data):
 				f.write(line)
 				j = j + 1
 
-def writeCsvRowSpecial(fname,data):
+def writeData(fname,data,toJson=True):
 	# writes all data into one file
-	with open(outputFolder + '/' + fname, 'w', newline='') as f:
-		fieldnames = list(data.keys())
-		writer = csv.DictWriter(f, fieldnames=fieldnames)
-		writer.writeheader()
-		for l in range(0, len(data[fieldnames[0]])):
-			writer.writerow({fieldnames[i]: data[fieldnames[i]][l] for i in range(len(fieldnames))})
+	if toJson:
+		return json.dumps(data, sort_keys=True, indent=4)
+	else:
+		with open(outputFolder + '/' + fname + '.csv', 'w', newline='') as f:
+			fieldnames = list(data.keys())
+			writer = csv.DictWriter(f, fieldnames=fieldnames)
+			writer.writeheader()
+			for l in range(0, len(data[fieldnames[0]])):
+				writer.writerow({fieldnames[i]: data[fieldnames[i]][l] for i in range(len(fieldnames))})
+		return None
 
 
 def createFile(fname):
@@ -72,28 +76,28 @@ def createFile(fname):
 
 # Function to create empty files to ensure that certain software doesn't crash for lack of files
 def createEmptyFiles():
-	createFile('Electricity_Profile.csv')
+	#createFile('Electricity_Profile.csv')
 	createFile('Electricity_Profile_ForOptimization.csv')
-	createFile('Electricity_Profile_GroupOther.csv')
-	createFile('Electricity_Profile_GroupInductive.csv')
-	createFile('Electricity_Profile_GroupFridges.csv')
-	createFile('Electricity_Profile_GroupElectronics.csv')
-	createFile('Electricity_Profile_GroupLighting.csv')
-	createFile('Electricity_Profile_GroupStandby.csv')
+	#createFile('Electricity_Profile_GroupOther.csv')
+	#createFile('Electricity_Profile_GroupInductive.csv')
+	#createFile('Electricity_Profile_GroupFridges.csv')
+	#createFile('Electricity_Profile_GroupLighting.csv')
+	#createFile('Electricity_Profile_GroupElectronics.csv')
+	#createFile('Electricity_Profile_GroupStandby.csv')
 	
-	createFile('Reactive_Electricity_Profile.csv')
-	createFile('Reactive_Electricity_Profile_GroupOther.csv')
-	createFile('Reactive_Electricity_Profile_GroupInductive.csv')
-	createFile('Reactive_Electricity_Profile_GroupFridges.csv')
-	createFile('Reactive_Electricity_Profile_GroupElectronics.csv')
-	createFile('Reactive_Electricity_Profile_GroupLighting.csv')
-	createFile('Reactive_Electricity_Profile_GroupStandby.csv')
+	#createFile('Reactive_Electricity_Profile.csv')
+	#createFile('Reactive_Electricity_Profile_GroupOther.csv')
+	#createFile('Reactive_Electricity_Profile_GroupInductive.csv')
+	#createFile('Reactive_Electricity_Profile_GroupFridges.csv')
+	#createFile('Reactive_Electricity_Profile_GroupElectronics.csv')
+	#createFile('Reactive_Electricity_Profile_GroupLighting.csv')
+	#createFile('Reactive_Electricity_Profile_GroupStandby.csv')
 
-	createFile('Electricity_Profile_PVProduction.csv')
-	createFile('PhotovoltaicSettings.txt')
-	createFile('Electricity_Profile_PVProduction.csv')
-	createFile('BatterySettings.txt')
-	createFile('HeatingSettings.txt')
+	#createFile('Electricity_Profile_PVProduction.csv')
+	#createFile('PhotovoltaicSettings.txt')
+	#createFile('Electricity_Profile_PVProduction.csv')
+	#createFile('BatterySettings.txt')
+	#createFile('HeatingSettings.txt')
 		
 	createFile('ElectricVehicle_Starttimes.txt')
 	createFile('ElectricVehicle_Endtimes.txt')
@@ -129,22 +133,22 @@ def writeHousehold(house, num):
 	# Add heat demand to electricity profile
 	house.Consumption['HeatDemand'] = house.HeatDemand['Total']
 	#Save the profile:
-	writeCsvRowSpecial('Electricity_Profile_ForOptimization.csv', house.Consumption)
-	writeCsvRow('Electricity_Profile.csv', num, house.Consumption['Total'])
-	writeCsvRow('Electricity_Profile_GroupOther.csv', num, house.Consumption['Other'])
-	writeCsvRow('Electricity_Profile_GroupInductive.csv', num, house.Consumption['Inductive'])
-	writeCsvRow('Electricity_Profile_GroupFridges.csv', num, house.Consumption['Fridges'])
-	writeCsvRow('Electricity_Profile_GroupElectronics.csv', num, house.Consumption['Electronics'])
-	writeCsvRow('Electricity_Profile_GroupLighting.csv', num, house.Consumption['Lighting'])
-	writeCsvRow('Electricity_Profile_GroupStandby.csv', num, house.Consumption['Standby'])
+	jsonData = writeData('Electricity_Profile_ForOptimization', house.Consumption, toJson=True)
+	#writeCsvRow('Electricity_Profile.csv', num, house.Consumption['Total'])
+	#writeCsvRow('Electricity_Profile_GroupOther.csv', num, house.Consumption['Other'])
+	#writeCsvRow('Electricity_Profile_GroupInductive.csv', num, house.Consumption['Inductive'])
+	#writeCsvRow('Electricity_Profile_GroupFridges.csv', num, house.Consumption['Fridges'])
+	#writeCsvRow('Electricity_Profile_GroupElectronics.csv', num, house.Consumption['Electronics'])
+	#writeCsvRow('Electricity_Profile_GroupLighting.csv', num, house.Consumption['Lighting'])
+	#writeCsvRow('Electricity_Profile_GroupStandby.csv', num, house.Consumption['Standby'])
 	
-	writeCsvRow('Reactive_Electricity_Profile.csv', num, house.ReactiveConsumption['Total'])
-	writeCsvRow('Reactive_Electricity_Profile_GroupOther.csv', num, house.ReactiveConsumption['Other'])
-	writeCsvRow('Reactive_Electricity_Profile_GroupInductive.csv', num, house.ReactiveConsumption['Inductive'])
-	writeCsvRow('Reactive_Electricity_Profile_GroupFridges.csv', num, house.ReactiveConsumption['Fridges'])
-	writeCsvRow('Reactive_Electricity_Profile_GroupElectronics.csv', num, house.ReactiveConsumption['Electronics'])
-	writeCsvRow('Reactive_Electricity_Profile_GroupLighting.csv', num, house.ReactiveConsumption['Lighting'])
-	writeCsvRow('Reactive_Electricity_Profile_GroupStandby.csv', num, house.ReactiveConsumption['Standby'])
+	#writeCsvRow('Reactive_Electricity_Profile.csv', num, house.ReactiveConsumption['Total'])
+	#writeCsvRow('Reactive_Electricity_Profile_GroupOther.csv', num, house.ReactiveConsumption['Other'])
+	#writeCsvRow('Reactive_Electricity_Profile_GroupInductive.csv', num, house.ReactiveConsumption['Inductive'])
+	#writeCsvRow('Reactive_Electricity_Profile_GroupFridges.csv', num, house.ReactiveConsumption['Fridges'])
+	#writeCsvRow('Reactive_Electricity_Profile_GroupElectronics.csv', num, house.ReactiveConsumption['Electronics'])
+	#writeCsvRow('Reactive_Electricity_Profile_GroupLighting.csv', num, house.ReactiveConsumption['Lighting'])
+	#writeCsvRow('Reactive_Electricity_Profile_GroupStandby.csv', num, house.ReactiveConsumption['Standby'])
 
 	# Save HeatGain profiles
 	writeCsvRow('Heatgain_Profile.csv', num, house.HeatGain['Total'])
@@ -193,6 +197,8 @@ def writeHousehold(house, num):
 	else:
 		text = str(num)+':CONVENTIONAL'	# Conventional heating device, e.g. natural gas boiler
 		writeCsvLine('HeatingSettings.txt', num, text)
+
+	return jsonData
 	
 def writeDeviceBufferTimeshiftable(machine, hnum):
 	if machine.BufferCapacity > 0 and len(machine.StartTimes) > 0:

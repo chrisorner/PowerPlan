@@ -80,11 +80,20 @@ layout = html.Div([
                     ]),
                 ]),
 
-                html.Div([html.Button('Start Calculation', id='button_calc', className='btn btn-primary')], className='row my-4')
+                html.Div([
+                    html.Button('Start Calculation', id='button_calc', className='btn btn-primary'),
+                    dcc.Loading(
+                        id="loading-1",
+                        type="default",
+                        fullscreen=True,
+                        children=dcc.Store(id="generate_profile_output")
+                    )
+                    ], className='row my-4')
             ], className='col-2 mx-1 graph__container'),
             html.Div([
                 dcc.Graph(id='graph_loadprofile', 
                 config={'displayModeBar': False},
+                className='mt-5',
                 figure=dict(
                             layout=dict(
                                 plot_bgcolor=app_color["graph_bg"],
@@ -93,7 +102,7 @@ layout = html.Div([
                                 
                                     )
                             )
-                        )
+                        ),
             ], className='col-7 mx-1 graph__container'),
             html.Div([
                 dcc.Checklist(id='checkbox_cons_data',
@@ -114,6 +123,6 @@ layout = html.Div([
 
 
 
-    html.Div(id='generate_profile_output'),
+    #html.Div(id='generate_profile_output'),
     html.Div(id='app-1-display-value')
 ])

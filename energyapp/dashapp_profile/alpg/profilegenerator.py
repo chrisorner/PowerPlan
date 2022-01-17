@@ -92,7 +92,8 @@ def profilegenerator():
 
 
 	print('Loading external_inputs: '+cfgFile)
-	print("The current external_inputs will create and simulate "+str(len(external_inputs.householdList))+" households")
+	#print("The current external_inputs will create and simulate "+str(len(external_inputs.householdList))+" households")
+	print("The current external_inputs will create and simulate 1 household")
 	print("Results will be written into: "+cfgOutputDir+"\n")
 	print("NOTE: Simulation may take a (long) while...\n")
 
@@ -134,7 +135,7 @@ def profilegenerator():
 		householdList[0].reactivePowerProfile()
 		householdList[0].thermalGainProfile()
 
-		writer.writeHousehold(householdList[0], hnum)
+		jsonData = writer.writeHousehold(householdList[0], hnum)
 		writer.writeNeighbourhood(hnum)
 
 		householdList[0].Consumption = None
@@ -144,3 +145,5 @@ def profilegenerator():
 		del(householdList[0])
 
 		hnum = hnum + 1
+
+	return jsonData

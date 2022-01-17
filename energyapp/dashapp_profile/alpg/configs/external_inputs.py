@@ -142,30 +142,9 @@ personWeekendActivityChanceMax = 	30 	#percentage
 
 # Parameters to define individual households
 numKids = 2
-yearlyConsumption = 3500
+yearlyConsumption = 500
 distancetoWork = 20
-
-householdList = []
+householdType = "fam_dual_work" 
 
 #Select the types of households
 
-for i in range(0,0):
-	householdList.append(households.HouseholdSingleWorker())
-
-for i in range(0,0):
-	householdList.append(households.HouseholdSingleRetired())
-
-for i in range(0,0):
-	householdList.append(households.HouseholdDualWorker(True))
-
-for i in range(0,0):
-	householdList.append(households.HouseholdDualWorker(False))
-
-for i in range(0,0):
-	householdList.append(households.HouseholdDualRetired())
-
-for i in range(0,0):
-	householdList.append(households.HouseholdFamilyDualWorker(True))
-
-for i in range(0,1):
-	householdList.append(households.HouseholdFamilyDualWorker(False))

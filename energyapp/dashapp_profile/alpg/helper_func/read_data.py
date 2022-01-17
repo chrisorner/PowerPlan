@@ -1,10 +1,12 @@
 import pandas as pd
 import os
 
-def read_alpg_data(start, end):
-    #print("read_data locaction: " + os.getcwd())
-
-    E_cons= pd.read_csv("energyapp/dashapp_profile/alpg/output/results/Electricity_Profile_ForOptimization.csv")
+def read_alpg_data(data_source, start, end, from_json=False):
+    """Read alpg output and convert to pandas dataframe"""
+    if from_json:
+        E_cons= pd.read_json(data_source)
+    else:
+        E_cons= pd.read_csv(data_source)
     #E_cons['Electronics']=pd.read_csv("energyapp/dashapp_profile/alpg/output/results/Electricity_Profile_GroupElectronics.csv")
     #E_cons['Fridge']=pd.read_csv("energyapp/dashapp_profile/alpg/output/results/Electricity_Profile_GroupFridges.csv")
     #E_cons['Inductive']=pd.read_csv("energyapp/dashapp_profile/alpg/output/results/Electricity_Profile_GroupInductive.csv")

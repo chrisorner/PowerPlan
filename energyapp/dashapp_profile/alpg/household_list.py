@@ -1,26 +1,28 @@
 from energyapp.dashapp_profile.alpg import households
 
-householdList = []
+def getHouseholdList(householdType):
+	householdList = []
 
-#Select the types of households
+	#Select the types of households
+	if householdType == "single_work":
+		for i in range(0,1):
+			householdList.append(households.HouseholdSingleWorker())
+	
+	elif householdType == "single_retired":
+		for i in range(0,1):
+			householdList.append(households.HouseholdSingleRetired())
 
-for i in range(0,0):
-	householdList.append(households.HouseholdSingleWorker())
 
-for i in range(0,0):
-	householdList.append(households.HouseholdSingleRetired())
+	elif householdType == "dual_work":
+		for i in range(0,1):
+			householdList.append(households.HouseholdDualWorker())
 
-for i in range(0,0):
-	householdList.append(households.HouseholdDualWorker(True))
+	elif householdType == "dual_retired":
+		for i in range(0,1):
+			householdList.append(households.HouseholdDualRetired())
 
-for i in range(0,0):
-	householdList.append(households.HouseholdDualWorker(False))
+	elif householdType == "fam_dual_work":
+		for i in range(0,1):
+			householdList.append(households.HouseholdFamilyDualWorker())
 
-for i in range(0,0):
-	householdList.append(households.HouseholdDualRetired())
-
-for i in range(0,0):
-	householdList.append(households.HouseholdFamilyDualWorker(True))
-
-for i in range(0,1):
-	householdList.append(households.HouseholdFamilyDualWorker(False))
+	return householdList
