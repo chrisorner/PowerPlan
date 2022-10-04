@@ -1,1 +1,0 @@
-from energyapp.blueprints.user.views import user

@@ -1,1 +1,0 @@
-from energyapp.blueprints.contact.views import contact

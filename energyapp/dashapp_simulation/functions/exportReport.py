@@ -1,15 +1,11 @@
-import numpy as np
-import pandas as pd
-import xhtml2pdf
-import plotly.tools as tls
-import plotly.graph_objs as go
-from xhtml2pdf import pisa
 import json
+import os
+import webbrowser
+
 import requests
 from requests.auth import HTTPBasicAuth
-import os
 
-username = os.getenv('PLOTLY_USERNAME',None)
+username = os.getenv('PLOTLY_USERNAME', None)
 api_key = os.getenv('PLOTLY_API_KEY', None)
 auth = HTTPBasicAuth(username, api_key)
 headers = {'Plotly-Client-Platform': 'python'}
@@ -20,9 +16,9 @@ def report_block_template(report_type, graph_url, caption=''):
         graph_block = '<iframe style="border: none;" src="{graph_url}.embed" width="50%" height="50%"></iframe>'
     elif report_type == 'static':
         graph_block = (''
-            '<a href="{graph_url}" target="_blank">' 
-                '<img style="height: 200px width:200px;" src="{graph_url}.png">'
-            '</a>')
+                       '<a href="{graph_url}" target="_blank">'
+                       '<img style="height: 200px width:200px;" src="{graph_url}.png">'
+                       '</a>')
 
     with open('energyapp/dashapp_simulation/functions/report_template.html') as f:
         report_template = f.read()
@@ -35,7 +31,8 @@ def report_block_template(report_type, graph_url, caption=''):
     return report_block
 
 
-from xhtml2pdf import pisa             # import python module
+from xhtml2pdf import pisa  # import python module
+
 
 # Utility function
 def convert_html_to_pdf(source_html, output_filename):
@@ -44,11 +41,11 @@ def convert_html_to_pdf(source_html, output_filename):
 
     # convert HTML to PDF
     pisa_status = pisa.CreatePDF(
-            source_html,                # the HTML to convert
-            dest=result_file)           # file handle to recieve result
+        source_html,  # the HTML to convert
+        dest=result_file)  # file handle to recieve result
 
     # close output file
-    result_file.close()                 # close output file
+    result_file.close()  # close output file
 
     # return True on success and False on errors
     return pisa_status.err
@@ -57,7 +54,6 @@ def convert_html_to_pdf(source_html, output_filename):
 def generate_report(graphs):
     interactive_report = ''
     static_report = ''
-
 
     for graph_url in graphs:
         _static_block = report_block_template('static', graph_url, caption='')
@@ -70,7 +66,7 @@ def generate_report(graphs):
 
 
 def get_pages(username, page_size):
-    url = 'https://api.plot.ly/v2/folders/all?user='+username+'&page_size='+str(page_size)
+    url = 'https://api.plot.ly/v2/folders/all?user=' + username + '&page_size=' + str(page_size)
     response = requests.get(url, auth=auth, headers=headers)
     if response.status_code != 200:
         return
@@ -86,16 +82,31 @@ def get_pages(username, page_size):
         page = json.loads(response.content)
         yield page
 
+
 def permanently_delete_files(username, page_size=500, filetype_to_delete='plot'):
     for page in get_pages(username, page_size):
         for x in range(0, len(page['children']['results'])):
             fid = page['children']['results'][x]['fid']
             res = requests.get('https://api.plot.ly/v2/files/' + fid, auth=auth, headers=headers)
-           # res.raise_for_status()
+            # res.raise_for_status()
             if res.status_code == 200:
                 json_res = json.loads(res.content)
                 if json_res['filetype'] == filetype_to_delete:
                     # move to trash
-                    requests.post('https://api.plot.ly/v2/files/'+fid+'/trash', auth=auth, headers=headers)
+                    requests.post('https://api.plot.ly/v2/files/' + fid + '/trash', auth=auth, headers=headers)
                     # permanently delete
-                    requests.delete('https://api.plot.ly/v2/files/'+fid+'/permanent_delete', auth=auth, headers=headers)
+                    requests.delete('https://api.plot.ly/v2/files/' + fid + '/permanent_delete', auth=auth,
+                                    headers=headers)
+
+
+graphs = [
+    'https://plotly.com/~christopherp/308',
+    'https://plotly.com/~christopherp/306',
+    'https://plotly.com/~christopherp/300',
+    'https://plotly.com/~christopherp/296'
+]
+
+static_report, _ = generate_report(graphs)
+
+# convert_html_to_pdf(static_report, 'report.pdf')
+webbrowser.open_new(static_report)

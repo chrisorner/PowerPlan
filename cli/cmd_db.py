@@ -6,7 +6,6 @@ from flask.cli import with_appcontext
 from sqlalchemy_utils import database_exists, create_database
 
 from energyapp.extensions import db as db_ext
-from energyapp.blueprints.user.models import User
 
 
 @click.group()

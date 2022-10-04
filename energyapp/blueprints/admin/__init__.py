@@ -1,1 +1,0 @@
-from energyapp.blueprints.admin.views import admin
