@@ -10,9 +10,11 @@ from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State
 from pvlib import pvsystem
 
-from energyapp.dashapp_simulation.functions.helper_fnc_calc import get_battery_costs, get_solar_power
+from energyapp.dashapp_simulation.Battery import Battery
+from energyapp.dashapp_simulation.Costs import Costs
+from energyapp.dashapp_simulation.Solar import Solar, P_RADIATION
+from energyapp.dashapp_simulation.functions.helper_fnc_calc import get_time_range
 from energyapp.dashapp_simulation.functions.helper_fnc_data import read_alpg_results
-from energyapp.dashapp_simulation.models import Solar, Battery, Costs
 
 all_modules = pvsystem.retrieve_sam(name='SandiaMod')
 module_names = list(all_modules.columns)
@@ -105,24 +107,24 @@ controls = dbc.Col([
     dbc.Row([
         html.H4('Cost Data'),
         dbc.Col([
-            dbc.Label('Battery [EUR/kWh]', html_for='cost_bat'),
-            dbc.Input(id='cost_bat', value='1100', type='text')
+            dbc.Label('Battery [EUR/kWh]', html_for='cost_battery_specific'),
+            dbc.Input(id='cost_battery_specific', value='1100', type='text')
         ], width=2),
         dbc.Col([
             dbc.Label('Grid supply [EUR/kWh]', html_for='cost_kwh'),
             dbc.Input(id='cost_kwh', value='0.3', type='text')
         ], width=2),
         dbc.Col([
-            dbc.Label('Solar Panels [EUR/kWp]', html_for='cost_wp'),
-            dbc.Input(id='cost_wp', value='1000', type='text')
+            dbc.Label('Solar Panels [EUR/kWp]', html_for='cost_solar_panel'),
+            dbc.Input(id='cost_solar_panel', value='1000', type='text')
         ], width=2),
         dbc.Col([
             dbc.Label('Number of Years', html_for='years'),
             dbc.Input(id='years', value='20', type='number')
         ], width=2),
         dbc.Col([
-            dbc.Label('Increase of Energy Cost', html_for='inc_cost_ener'),
-            dbc.Input(id='inc_cost_ener', value='0.01', type='text')
+            dbc.Label('Increase of Energy Cost', html_for='cost_energy_increase'),
+            dbc.Input(id='cost_energy_increase', value='0.01', type='text')
         ], width=2),
         dbc.Col(html.Div([
             dbc.Label('Inflation', html_for='inflation'),
@@ -173,11 +175,11 @@ freq = "H"
 # load energy constumption data
 consumption_profile = 'energyapp/dashapp_profile/alpg/output/results/Electricity_Profile_ForOptimization.csv'
 if os.path.exists(consumption_profile) and os.stat(consumption_profile).st_size != 0:
-    load_elec = read_alpg_results(consumption_profile, "Total", start=startTime, end=endTime, freq=freq)
-    load_heat = read_alpg_results(consumption_profile, "HeatDemand", start=startTime, end=endTime, freq=freq)
+    P_cons_el = read_alpg_results(consumption_profile, "Total", start=startTime, end=endTime, freq=freq)
+    P_cons_heat = read_alpg_results(consumption_profile, "HeatDemand", start=startTime, end=endTime, freq=freq)
 else:
-    load_elec = np.zeros(8760)
-    load_heat = np.zeros(8760)
+    P_cons_el = np.zeros(8760)
+    P_cons_heat = np.zeros(8760)
 
 
 @callback(
@@ -202,60 +204,55 @@ def change_loc(n_clicks, location):
     [Input('sandia_database', 'value'),
      Input('store_location', 'children'),
      Input('button_calc', 'n_clicks')],
-    [State('cost_bat', 'value'),
+    [State('cost_battery_specific', 'value'),
      State('capacity', 'value'),
      State('years', 'value'),
      State('cost_kwh', 'value'),
-     State('cost_wp', 'value'),
+     State('cost_solar_panel', 'value'),
      State('A_cells', 'value'),
      State('panel_tilt', 'value'),
      State('panel_orient', 'value'),
-     State('inc_cost_ener', 'value'),
+     State('cost_energy_increase', 'value'),
      State('inflation', 'value'),
      ],
 )
-def update_cost(module, loc, n_clicks, cost_bat, cap_bat, years_input, cost_kwh, cost_wp,
-                area_cells, tilt, orient, cost_inc, infl):
+def update_cost(module, loc, n_clicks, cost_battery_specific, battery_capacity, years_input, cost_kwh, cost_solar_panel,
+                roof_area, tilt, surface_azimuth, cost_el_increase, inflation):
     ##Update everything with input data
     Temp = 298  # Ambient Temperature
     years_input = int(years_input)
 
-    # Find today's date and end date in 5 days
-    # time_vec6d = np.linspace(0, 8580, 24 * 6)
-    # today = datetime.datetime.today().strftime('2008-%m-%dT00:00')
-    # time_end = datetime.date.today() + datetime.timedelta(days=5)
-    # end_time = time_end.strftime('2008-%m-%dT23:00')
-
-    bat_cost = float(cost_bat) * float(cap_bat)
+    cost_battery_total = float(cost_battery_specific) * float(battery_capacity)
 
     # Solar Model
-    cost_inc = float(cost_inc)
-    infl = float(infl)
-    area_cells = float(area_cells)
-    tilt = float(tilt)
-    orient = float(orient)
-    sol = Solar()
-    _, irrad_global, p_sol = get_solar_power(solar_instance=sol, area=area_cells, tilt=tilt, orient=orient,
-                                             start=startTime,
-                                             end=endTime, freq=freq)
+    cost_el_increase = float(cost_el_increase)
+    inflation = float(inflation)
+
+    solar = Solar(float(roof_area), float(tilt), float(surface_azimuth), module)
+    solar.get_coordinates(loc)
+    time_range = get_time_range(startTime, endTime, freq)
+    irradiation, weather, am_abs, aoi = solar.calc_irrad(time_range)
+    irrad_global = irradiation['poa_global']
+    P_solar = solar.pv_system(irradiation, weather, am_abs, aoi)
+    irrad_global_resampled = solar.get_resampled_irradiation(irrad_global, time_range, freq)
+    P_solar_resampled = solar.get_resampled_solar_power(P_solar, time_range, freq)
 
     # Cost Model
-    p_peak = area_cells * sol.efficiency * 1000
-    bat = Battery()
-    bat.calc_soc(cap_bat, load_elec, p_sol)
-    e_batt = bat.get_stored_energy()
-    e_grid = bat.get_from_grid()
-    e_sell = bat.get_w_unused()
+    P_peak = float(roof_area) * solar.efficiency * P_RADIATION
+    battery = Battery(float(battery_capacity))
+    battery.calc_soc(P_cons_el, P_solar_resampled)
+    P_store = battery.get_stored_energy()
+    P_grid = battery.get_from_grid()
+    P_sell = battery.get_w_unused()
 
-    cost = Costs(irrad_global, years_input, cost_kwh, p_peak, cost_inc, infl)
-    cost.calc_costs(irrad_global, years_input, bat_cost, p_peak, cost_wp, load_elec, e_grid, e_sell)
+    cost = Costs(irrad_global_resampled, years_input, cost_kwh, P_peak, cost_el_increase, inflation)
+    cost.calc_costs(irrad_global_resampled, years_input, cost_battery_total, P_peak, cost_solar_panel, P_cons_el,
+                    P_grid, P_sell)
     grid_costs = cost.total_costs
     solar_costs = cost.total_costs_sol
 
-    p_cons = load_elec
-
-    costs_with_batteries = get_battery_costs(load_elec, p_sol, irrad_global, years_input, float(cost_bat),
-                                             p_peak, cost_wp, cost_inc, infl, cost_kwh)
+    costs_with_batteries = cost.compare_battery_costs(P_cons_el, P_solar_resampled, irrad_global_resampled, years_input,
+                                                      float(cost_battery_specific), P_peak, cost_solar_panel)
 
     exportJson = False
 
@@ -265,18 +262,20 @@ def update_cost(module, loc, n_clicks, cost_bat, cap_bat, years_input, cost_kwh,
         gas_price = np.ones(8760) * 0.07
         elec_price_out = np.ones(8760) * 0.11
         ev_aval = np.ones(8760)
-        data = np.stack((temp, p_sol, load_heat, load_elec, elec_price_in, gas_price, elec_price_out, ev_aval),
-                        axis=1)
-        df = pd.DataFrame(data, columns=["temperature", "solar_power", "load_heat", "load_elec", "ele_price_in",
+        data = np.stack(
+            (temp, P_solar_resampled, P_cons_heat, P_cons_el, elec_price_in, gas_price, elec_price_out, ev_aval),
+            axis=1)
+        df = pd.DataFrame(data, columns=["temperature", "solar_power", "P_cons_heat", "P_cons_el", "ele_price_in",
                                          "gas_price", "ele_price_out", "ev_aval"])
         df_selected = df.iloc[0:48]
-        # df_json = df.to_json(orient="columns")
+        # df_json = df.to_json(surface_azimuth="columns")
         df_json = df_selected.to_json(orient="columns")
         with open("data.json", "w") as jsonFile:
             jsonFile.write(df_json)
 
-    return json.dumps(p_sol.tolist()), json.dumps(load_elec.tolist()), json.dumps(irrad_global.tolist()), \
-           json.dumps(e_batt.tolist()), json.dumps(e_grid.tolist()), json.dumps(e_sell.tolist()), \
+    return json.dumps(P_solar_resampled.tolist()), json.dumps(P_cons_el.tolist()), json.dumps(
+        irrad_global_resampled.tolist()), \
+           json.dumps(P_store.tolist()), json.dumps(P_grid.tolist()), json.dumps(P_sell.tolist()), \
            json.dumps(grid_costs.tolist()), json.dumps(solar_costs.tolist()), json.dumps(
         costs_with_batteries.tolist())
 
@@ -362,16 +361,16 @@ def update_graph_costs(sel_plot, years_input, rad_val_json, e_batt_json, e_grid_
 
     try:
         rad_val = json.loads(rad_val_json)
-        e_batt = json.loads(e_batt_json)
-        e_grid = json.loads(e_grid_json)
-        e_sell = json.loads(e_sell_json)
+        P_store = json.loads(e_batt_json)
+        P_grid = json.loads(e_grid_json)
+        P_sell = json.loads(e_sell_json)
         grid_costs = json.loads(grid_costs_json)
         solar_costs = json.loads(solar_costs_json)
     except TypeError:
         rad_val = np.zeros(8785)
-        e_batt = np.zeros(8785)
-        e_grid = np.zeros(8785)
-        e_sell = np.zeros(8785)
+        P_store = np.zeros(8785)
+        P_grid = np.zeros(8785)
+        P_sell = np.zeros(8785)
         grid_costs = np.zeros(21)
         solar_costs = np.zeros(21)
 
@@ -415,7 +414,7 @@ def update_graph_costs(sel_plot, years_input, rad_val_json, e_batt_json, e_grid_
 
     traces.append(go.Scatter(
         x=rad_time[0:119],
-        y=e_batt[0:119],
+        y=P_store[0:119],
         name='Energy Stored',
         mode='lines',
         marker={
@@ -426,7 +425,7 @@ def update_graph_costs(sel_plot, years_input, rad_val_json, e_batt_json, e_grid_
 
     traces.append(go.Scatter(
         x=rad_time[0:119],
-        y=e_grid[0:119],
+        y=P_grid[0:119],
         name='Energy Bought',
         mode='lines',
         marker={
@@ -437,7 +436,7 @@ def update_graph_costs(sel_plot, years_input, rad_val_json, e_batt_json, e_grid_
 
     traces.append(go.Scatter(
         x=rad_time[0:119],
-        y=e_sell[0:119],
+        y=P_sell[0:119],
         name='Energy Sold',
         mode='lines',
         marker={

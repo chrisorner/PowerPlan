@@ -1,13 +1,14 @@
-from flask_restful import reqparse, Resource, fields, marshal_with
 from flask import jsonify
-import pandas as pd
-from energyapp.dashapp_simulation.models import Solar
+from flask_restful import reqparse, Resource, fields, marshal_with
+
+from energyapp.dashapp_simulation.Solar import Solar
 from energyapp.dashapp_simulation.functions.helper_fnc_calc import get_solar_power
 from energyapp.dashapp_simulation.functions.helper_fnc_data import get_consumption, get_token
 
 token = get_token()
 startTime = "20210701"
 endTime = "20210702"
+
 
 class MyDateFormat(fields.Raw):
     def format(self, value):
@@ -41,7 +42,8 @@ class SolarPower(Resource):
         end_time = args["end_time"]
         freq = args["freq"]
         location = args["location"]
-        time, _, p_sol = get_solar_power(solar_instance=sol, area=area_cells, tilt=tilt, orient=orient, start=start_time,
+        time, _, p_sol = get_solar_power(solar_instance=sol, cell_area=area_cells, tilt=tilt, orient=orient,
+                                         start=start_time,
                                          end=end_time, freq=freq, loc=location)
         # solarData = pd.DataFrame({"time": time, "power": p_sol}, index="time")
         # consumptionData = pd.DataFrame(get_consumption(token, start=startTime, end=endTime))
