@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import Dash, html
 
-app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.SOLAR])
+app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.SLATE])
 
 app.layout = html.Div([
 

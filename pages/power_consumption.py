@@ -8,9 +8,9 @@ import plotly.graph_objs as go
 from dash import Input, Output, State, callback
 from dash import dcc, html
 
-from energyapp.dashapp_profile.alpg.helper_func.read_data import read_alpg_data
-from energyapp.dashapp_profile.alpg.helper_func.set_parameters import set_parameters
-from energyapp.dashapp_profile.alpg.profilegenerator import profilegenerator
+from energyapp.consumption_profile.alpg.helper_func.read_data import read_alpg_data
+from energyapp.consumption_profile.alpg.helper_func.set_parameters import set_parameters
+from energyapp.consumption_profile.alpg.profilegenerator import profilegenerator
 
 app_color = {"graph_bg": "#082255", "graph_line": "#007ACE"}
 
@@ -173,7 +173,7 @@ def change_graph(sel_output, profile_generated):
 
     else:
 
-        file = "energyapp/dashapp_profile/alpg/output/results/Electricity_Profile_ForOptimization.csv"
+        file = "energyapp/consumption_profile/alpg/output/results/Electricity_Profile_ForOptimization.csv"
         if os.path.exists(file) and os.stat(file).st_size != 0:
             start = pd.Timestamp('2018-01-01')
             end = pd.Timestamp('2018-12-31 23:59:00')

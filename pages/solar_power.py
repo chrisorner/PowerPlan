@@ -10,11 +10,10 @@ from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State
 from pvlib import pvsystem
 
-from energyapp.dashapp_simulation.Battery import Battery
-from energyapp.dashapp_simulation.Costs import Costs
-from energyapp.dashapp_simulation.Solar import Solar, P_RADIATION
-from energyapp.dashapp_simulation.functions.helper_fnc_calc import get_time_range
-from energyapp.dashapp_simulation.functions.helper_fnc_data import read_alpg_results
+from energyapp.system_simulation.Battery import Battery
+from energyapp.system_simulation.Costs import Costs
+from energyapp.system_simulation.Solar import Solar, P_RADIATION
+from energyapp.utils.helper import read_alpg_results, get_time_range
 
 all_modules = pvsystem.retrieve_sam(name='SandiaMod')
 module_names = list(all_modules.columns)
@@ -131,9 +130,6 @@ controls = dbc.Col([
             dbc.Input(id='inflation', value='0.02', type='text')
         ]), width=2),
     ], class_name='my-4 align-items-end'),
-    dbc.Row([
-        dbc.Button('Submit', id='button_loc', style={"width": "150px"})
-    ], class_name='my-4'),
 ], width=6)
 
 layout = html.Div([
@@ -141,9 +137,6 @@ layout = html.Div([
     navbar,
     graph_selection,
 
-    dbc.Row(html.Div([
-        dbc.Col(html.Div([dbc.Button('Start Calculation', id='button_calc')]), width=3)
-    ]), class_name="my-2"),
     dbc.Row([
         graphs,
         controls
@@ -173,7 +166,7 @@ endTime = "20181231"
 freq = "H"
 
 # load energy constumption data
-consumption_profile = 'energyapp/dashapp_profile/alpg/output/results/Electricity_Profile_ForOptimization.csv'
+consumption_profile = 'energyapp/consumption_profile/alpg/output/results/Electricity_Profile_ForOptimization.csv'
 if os.path.exists(consumption_profile) and os.stat(consumption_profile).st_size != 0:
     P_cons_el = read_alpg_results(consumption_profile, "Total", start=startTime, end=endTime, freq=freq)
     P_cons_heat = read_alpg_results(consumption_profile, "HeatDemand", start=startTime, end=endTime, freq=freq)
@@ -184,9 +177,8 @@ else:
 
 @callback(
     Output('store_location', 'children'),
-    [Input('button_loc', 'n_clicks')],
-    [State('location', 'value')])
-def change_loc(n_clicks, location):
+    [Input('location', 'value')])
+def change_loc(location):
     return location
 
 
@@ -202,8 +194,7 @@ def change_loc(n_clicks, location):
      Output('store_solar_costs', 'children'),
      Output('store_cost_with_batteries', 'children')],
     [Input('sandia_database', 'value'),
-     Input('store_location', 'children'),
-     Input('button_calc', 'n_clicks')],
+     Input('store_location', 'children')],
     [State('cost_battery_specific', 'value'),
      State('capacity', 'value'),
      State('years', 'value'),
@@ -216,7 +207,7 @@ def change_loc(n_clicks, location):
      State('inflation', 'value'),
      ],
 )
-def update_cost(module, loc, n_clicks, cost_battery_specific, battery_capacity, years_input, cost_kwh, cost_solar_panel,
+def update_cost(module, loc, cost_battery_specific, battery_capacity, years_input, cost_kwh, cost_solar_panel,
                 roof_area, tilt, surface_azimuth, cost_el_increase, inflation):
     ##Update everything with input data
     Temp = 298  # Ambient Temperature
@@ -314,7 +305,6 @@ def solar_power(sol_power_json):
 
 @callback(
     Output('graph-batteries', 'figure'),
-    # [Input('button_calc', 'n_clicks')],
     [Input('store_cost_with_batteries', 'children')])
 def batterie_costs(costs_batteries_json):
     if costs_batteries_json:

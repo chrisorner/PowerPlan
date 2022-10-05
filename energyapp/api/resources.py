@@ -1,9 +1,8 @@
 from flask import jsonify
 from flask_restful import reqparse, Resource, fields, marshal_with
 
-from energyapp.dashapp_simulation.Solar import Solar
-from energyapp.dashapp_simulation.functions.helper_fnc_calc import get_solar_power
-from energyapp.dashapp_simulation.functions.helper_fnc_data import get_consumption, get_token
+from energyapp.system_simulation.Solar import Solar
+from energyapp.utils.helper import get_measured_consumption, get_token
 
 token = get_token()
 startTime = "20210701"
@@ -52,5 +51,5 @@ class SolarPower(Resource):
 
 class Consumption(Resource):
     def get(self):
-        data = get_consumption(token, start=startTime, end=endTime)
+        data = get_measured_consumption(token, start=startTime, end=endTime)
         return jsonify(data)
